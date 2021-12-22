@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use self::Month::*;
 
 /// Months of the year
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, From)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display, From)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u8)]
 pub enum Month {
