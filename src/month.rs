@@ -1,4 +1,4 @@
-use derive_more::{Display, From};
+use derive_more::Display;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use self::Month::*;
 
 /// Months of the year
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display, From)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u8)]
 pub enum Month {
@@ -25,52 +25,46 @@ pub enum Month {
 }
 
 impl Month {
-	/// Get the next month.
+	/// Get the month based on the number.
+	/// Returns `None` if the input is 0 or greater than 12.
 	///
-	/// ```rust
+	/// # Example
+	///
+	/// ```
 	/// use botic::Month;
 	///
-	/// assert_eq!(Month::January.next(), Month::February);
-	/// ```
-	pub const fn next(self) -> Self {
-		match self {
-			January => February,
-			February => March,
-			March => April,
-			April => May,
-			May => June,
-			June => July,
-			July => August,
-			August => September,
-			September => October,
-			October => November,
-			November => December,
-			December => January,
+	/// assert_eq!(Some(Month::January), Month::from_u8(1));
+	/// assert_eq!(None, Month::from_u8(0));
+	/// assert_eq!(None, Month::from_u8(13));
+	pub const fn from_u8(num: u8) -> Option<Self> {
+		match num {
+			1 => Some(January),
+			2 => Some(February),
+			3 => Some(March),
+			4 => Some(April),
+			5 => Some(May),
+			6 => Some(June),
+			7 => Some(July),
+			8 => Some(August),
+			9 => Some(September),
+			10 => Some(October),
+			11 => Some(November),
+			12 => Some(December),
+			_ => None,
 		}
 	}
 
-	/// Get the previous month.
+	/// Get the number of the month
 	///
-	/// ```rust
+	/// # Example
+	///
+	/// ```
 	/// use botic::Month;
 	///
-	/// assert_eq!(Month::January.previous(), Month::December);
+	/// assert_eq!(1, Month::January.number());
 	/// ```
-	pub const fn previous(self) -> Self {
-		match self {
-			January => December,
-			February => January,
-			March => February,
-			April => March,
-			May => April,
-			June => May,
-			July => June,
-			August => July,
-			September => August,
-			October => September,
-			November => October,
-			December => November,
-		}
+	pub const fn number(self) -> u8 {
+		self as u8
 	}
 
 	/// Get the name of the month
@@ -122,6 +116,54 @@ impl Month {
 			October => "Oct",
 			November => "Nov",
 			December => "Dec",
+		}
+	}
+
+	/// Get the next month.
+	///
+	/// ```rust
+	/// use botic::Month;
+	///
+	/// assert_eq!(Month::January.next(), Month::February);
+	/// ```
+	pub const fn next(self) -> Self {
+		match self {
+			January => February,
+			February => March,
+			March => April,
+			April => May,
+			May => June,
+			June => July,
+			July => August,
+			August => September,
+			September => October,
+			October => November,
+			November => December,
+			December => January,
+		}
+	}
+
+	/// Get the previous month.
+	///
+	/// ```rust
+	/// use botic::Month;
+	///
+	/// assert_eq!(Month::January.previous(), Month::December);
+	/// ```
+	pub const fn previous(self) -> Self {
+		match self {
+			January => December,
+			February => January,
+			March => February,
+			April => March,
+			May => April,
+			June => May,
+			July => June,
+			August => July,
+			September => August,
+			October => September,
+			November => October,
+			December => November,
 		}
 	}
 }
