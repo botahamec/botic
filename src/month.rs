@@ -2,8 +2,11 @@ use derive_more::Display;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use self::Month::*;
+
+use core::str::FromStr;
 
 /// Months of the year
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display)]
@@ -50,6 +53,66 @@ impl Month {
 			10 => Some(October),
 			11 => Some(November),
 			12 => Some(December),
+			_ => None,
+		}
+	}
+
+	/// Get the month from the given string,
+	/// which is assumed to be the month's abbreviation.
+	/// Returns `None` if the string is not a valid abbrevation of a month
+	///
+	/// # Example
+	///
+	/// ```
+	/// use botic::Month;
+	///
+	/// assert_eq!(Some(Month::January), Month::from_abbreviation("Jan"));
+	/// assert_eq!(None, Month::from_abbreviation("Janu"));
+	/// ```
+	pub fn from_abbreviation(abbreviation: &str) -> Option<Self> {
+		match abbreviation {
+			"Jan" => Some(January),
+			"Feb" => Some(February),
+			"Mar" => Some(March),
+			"Apr" => Some(April),
+			"May" => Some(May),
+			"Jun" => Some(June),
+			"Jul" => Some(July),
+			"Aug" => Some(August),
+			"Sep" => Some(September),
+			"Oct" => Some(October),
+			"Nov" => Some(November),
+			"Dec" => Some(December),
+			_ => None,
+		}
+	}
+
+	/// Get the month from the given string,
+	/// which is assumed to be the month's name.
+	/// Returns `None` if the string is not a valid month
+	///
+	/// # Example
+	///
+	/// ```
+	/// use botic::Month;
+	///
+	/// assert_eq!(Some(Month::January), Month::from_name("January"));
+	/// assert_eq!(None, Month::from_name("Janu"));
+	/// ```
+	pub fn from_name(name: &str) -> Option<Self> {
+		match name {
+			"January" => Some(January),
+			"February" => Some(February),
+			"March" => Some(March),
+			"April" => Some(April),
+			"May" => Some(May),
+			"June" => Some(June),
+			"July" => Some(July),
+			"August" => Some(August),
+			"September" => Some(September),
+			"October" => Some(October),
+			"November" => Some(November),
+			"December" => Some(December),
 			_ => None,
 		}
 	}
@@ -171,5 +234,32 @@ impl Month {
 impl From<Month> for u8 {
 	fn from(month: Month) -> Self {
 		month as u8
+	}
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Error)]
+#[error("Failed to parse the month")]
+// TODO Consider trying to figure out what month the user meant to use
+pub struct ParseMonthError;
+
+// TODO optimize to look like this: https://github.com/chronotope/chrono/blob/main/src/format/scan.rs#L102
+// TODO make case-insensitive
+impl FromStr for Month {
+	type Err = ParseMonthError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		if let Ok(num) = u8::from_str(s) {
+			if let Some(month) = Month::from_u8(num) {
+				Ok(month)
+			} else {
+				Err(ParseMonthError)
+			}
+		} else if let Some(month) = Month::from_abbreviation(s) {
+			Ok(month)
+		} else if let Some(month) = Month::from_name(s) {
+			Ok(month)
+		} else {
+			Err(ParseMonthError)
+		}
 	}
 }
