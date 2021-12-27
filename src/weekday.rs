@@ -2,15 +2,12 @@ use std::str::FromStr;
 
 use derive_more::Display;
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use self::Weekday::*;
 
 /// Day of the week
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u8)]
 pub enum Weekday {
 	Monday = 0,

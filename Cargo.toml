@@ -9,4 +9,3 @@ license = "Unlicense"
 [dependencies]
 derive_more = "0.99"
 thiserror = "1"
-serde = { version = "1.0", optional = true, features = ["derive"] }

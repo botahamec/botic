@@ -2,20 +2,16 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 
 use derive_more::{Display, FromStr};
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
 /// A year value type, stored as an i32
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, FromStr, Display)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Year(i32);
 
 impl Year {
 	/// The latest year that can be represented
-	pub const MAX: Year = Year(i32::MAX);
+	pub const MAX: Self = Self(i32::MAX);
 
 	/// The earliest year that can be represented
-	pub const MIN: Year = Year(i32::MIN);
+	pub const MIN: Self = Self(i32::MIN);
 
 	/// An equivalent of `Year::from(i32)`, which can be run at compile-time
 	///

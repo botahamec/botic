@@ -1,7 +1,5 @@
 use derive_more::Display;
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use self::Month::*;
@@ -10,7 +8,6 @@ use core::str::FromStr;
 
 /// Months of the year
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(u8)]
 pub enum Month {
 	January = 1,
