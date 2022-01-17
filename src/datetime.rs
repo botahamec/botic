@@ -1,9 +1,38 @@
-use crate::{Date, Month, Time, Year};
+use crate::{timezone::UtcOffset, Date, Month, Time, TimeZone, Year};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NaiveDateTime {
 	date: Date,
 	time: Time,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct DateTime<Tz: TimeZone> {
+	utc_datetime: NaiveDateTime,
+	timezone: Tz,
+}
+
+impl<Tz: TimeZone> DateTime<Tz> {
+	// TODO unix epoch constant
+
+	pub fn from_utc(utc_datetime: NaiveDateTime, timezone: Tz) -> Self {
+		Self {
+			utc_datetime,
+			timezone,
+		}
+	}
+
+	pub fn offset(&self) -> UtcOffset {
+		self.timezone.utc_offset(self.utc_datetime)
+	}
+
+	pub fn timezone(&self) -> &Tz {
+		&self.timezone
+	}
+
+	pub fn naive_utc(&self) -> NaiveDateTime {
+		self.utc_datetime
+	}
 }
 
 impl NaiveDateTime {

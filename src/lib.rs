@@ -11,6 +11,7 @@ mod weekday;
 mod year;
 
 pub use date::Date;
+pub use datetime::DateTime;
 pub use datetime::NaiveDateTime;
 pub use month::Month;
 pub use time::Time;
