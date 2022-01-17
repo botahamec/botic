@@ -6,6 +6,7 @@ mod date;
 mod datetime;
 mod month;
 mod time;
+pub mod timezone;
 mod weekday;
 mod year;
 
