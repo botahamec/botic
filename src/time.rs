@@ -1,5 +1,3 @@
-use std::ops::Add;
-
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Time {
 	hour: u8,
@@ -107,14 +105,14 @@ impl Time {
 
 	// Get the millisecond within the second.
 	// The returned value will always be in the range `0..1_000`
-	pub const fn millisecond(self) -> u8 {
-		(self.nanosecond / 1_000_000) as u8
+	pub const fn millisecond(self) -> u16 {
+		(self.nanosecond / 1_000_000) as u16
 	}
 
 	// Get the microsecond within the second.
 	// The returned value will always be in the range `0..1_000_000`
-	pub const fn microsecond(self) -> u8 {
-		(self.nanosecond / 1_000) as u8
+	pub const fn microsecond(self) -> u32 {
+		(self.nanosecond / 1_000) as u32
 	}
 
 	// Get the nanosecond within the second.
