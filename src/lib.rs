@@ -14,5 +14,6 @@ pub use date::Date;
 pub use datetime::NaiveDateTime;
 pub use month::Month;
 pub use time::Time;
+pub use timezone::TimeZone;
 pub use weekday::Weekday;
 pub use year::Year;

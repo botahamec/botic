@@ -3,9 +3,14 @@ use core::convert::Infallible;
 
 /// A type that can be used to represent a TimeZone
 pub trait TimeZone {
+	/// The error to return in case of a failure to convert the local time to UTC
 	type Err;
 
-	fn utc_offset(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err>;
+	/// Given the time in the UTC timezone, determine the UtcOffset
+	fn utc_offset(&self, date_time: NaiveDateTime) -> UtcOffset;
+
+	/// Given the local date and time, figure out the offset from UTC
+	fn offset_from_local_time(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err>;
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -15,7 +20,11 @@ pub struct Utc;
 impl TimeZone for Utc {
 	type Err = Infallible;
 
-	fn utc_offset(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
+	fn utc_offset(&self, _: NaiveDateTime) -> UtcOffset {
+		UtcOffset::UTC
+	}
+
+	fn offset_from_local_time(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
 		Ok(UtcOffset::UTC)
 	}
 }
@@ -74,7 +83,11 @@ impl UtcOffset {
 impl TimeZone for UtcOffset {
 	type Err = Infallible;
 
-	fn utc_offset(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
+	fn utc_offset(&self, _: NaiveDateTime) -> UtcOffset {
+		*self
+	}
+
+	fn offset_from_local_time(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
 		Ok(*self)
 	}
 }
