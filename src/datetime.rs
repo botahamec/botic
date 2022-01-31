@@ -3,7 +3,7 @@ use crate::{
 	Date, Month, Time, TimeZone, Year,
 };
 
-use core::{cmp::Ordering, hash::Hash};
+use core::{cmp::Ordering, fmt::Display, hash::Hash};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NaiveDateTime {
@@ -150,3 +150,15 @@ impl<Tz: TimeZone> Ord for DateTime<Tz> {
 }
 
 // TODO addition
+
+impl Display for NaiveDateTime {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		write!(f, "{} {}", self.date, self.time)
+	}
+}
+
+impl<Tz: TimeZone> Display for DateTime<Tz> {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		write!(f, "{} {}", self.utc_datetime, self.timezone)
+	}
+}

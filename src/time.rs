@@ -168,3 +168,42 @@ impl Ord for Time {
 }
 
 // TODO addition
+
+impl Display for Time {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		let seconds = self.second as f64 + (self.nanosecond as f64 / 1_000_000_000.0);
+		if self.nanosecond() == 0 {
+			write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
+		} else if self.second < 10 {
+			write!(f, "{:02}:{:02}:0{}", self.hour, self.minute, seconds)
+		} else {
+			write!(f, "{:02}:{:02}:{}", self.hour, self.minute, seconds)
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn display_without_nanos() {
+		let time = unsafe { Time::from_hms_nano_unchecked(0, 0, 1, 0) };
+		let time_str = format!("{time}");
+		assert_eq!(time_str, "00:00:01");
+	}
+
+	#[test]
+	fn display_with_nanos_lt_10() {
+		let time = unsafe { Time::from_hms_nano_unchecked(0, 0, 1, 1_000_000) };
+		let time_str = format!("{time}");
+		assert_eq!(time_str, "00:00:01.001");
+	}
+
+	#[test]
+	fn display_with_nanos_gt_10() {
+		let time = unsafe { Time::from_hms_nano_unchecked(0, 0, 10, 1_000_000) };
+		let time_str = format!("{time}");
+		assert_eq!(time_str, "00:00:10.001");
+	}
+}

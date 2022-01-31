@@ -1,6 +1,7 @@
 use crate::{Month, Year};
 
 use core::cmp::Ordering;
+use core::fmt::Display;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Date {
@@ -91,3 +92,16 @@ impl Ord for Date {
 }
 
 // TODO addition
+
+impl Display for Date {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		write!(
+			f,
+			"{:0width$}-{:02}-{:02}",
+			self.year,
+			self.month as u8,
+			self.day,
+			width = 4 + (self.year() < 0.into()) as usize
+		)
+	}
+}
