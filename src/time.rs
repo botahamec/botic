@@ -1,3 +1,6 @@
+use core::cmp::Ordering;
+use core::fmt::Display;
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Time {
 	hour: u8,
@@ -119,6 +122,48 @@ impl Time {
 	// The returned value will always be in the range `0..1_000_000`
 	pub const fn nanosecond(self) -> u32 {
 		self.nanosecond
+	}
+}
+
+impl PartialOrd for Time {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		let hour_ordering = self.hour.cmp(&other.hour);
+		let minute_ordering = self.minute.cmp(&other.minute);
+		let second_ordering = self.second.cmp(&other.second);
+		let nano_ordering = self.nanosecond.cmp(&other.nanosecond);
+
+		if hour_ordering != Ordering::Equal {
+			Some(hour_ordering)
+		} else if minute_ordering != Ordering::Equal {
+			Some(minute_ordering)
+		} else if second_ordering != Ordering::Equal {
+			Some(second_ordering)
+		} else if nano_ordering != Ordering::Equal {
+			Some(nano_ordering)
+		} else {
+			Some(Ordering::Equal)
+		}
+	}
+}
+
+impl Ord for Time {
+	fn cmp(&self, other: &Self) -> Ordering {
+		let hour_ordering = self.hour.cmp(&other.hour);
+		let minute_ordering = self.minute.cmp(&other.minute);
+		let second_ordering = self.second.cmp(&other.second);
+		let nano_ordering = self.nanosecond.cmp(&other.nanosecond);
+
+		if hour_ordering != Ordering::Equal {
+			hour_ordering
+		} else if minute_ordering != Ordering::Equal {
+			minute_ordering
+		} else if second_ordering != Ordering::Equal {
+			second_ordering
+		} else if nano_ordering != Ordering::Equal {
+			nano_ordering
+		} else {
+			Ordering::Equal
+		}
 	}
 }
 

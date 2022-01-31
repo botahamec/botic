@@ -1,5 +1,7 @@
 use crate::{Month, Year};
 
+use core::cmp::Ordering;
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Date {
 	year: Year,
@@ -49,6 +51,42 @@ impl Date {
 
 	pub const fn day(self) -> u8 {
 		self.day
+	}
+}
+
+impl PartialOrd for Date {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		let year_ordering = self.year.cmp(&other.year);
+		let month_ordering = self.month.cmp(&other.month);
+		let day_ordering = self.day.cmp(&other.day);
+
+		if year_ordering != Ordering::Equal {
+			Some(year_ordering)
+		} else if month_ordering != Ordering::Equal {
+			Some(month_ordering)
+		} else if day_ordering != Ordering::Equal {
+			Some(day_ordering)
+		} else {
+			Some(Ordering::Equal)
+		}
+	}
+}
+
+impl Ord for Date {
+	fn cmp(&self, other: &Self) -> Ordering {
+		let year_ordering = self.year.cmp(&other.year);
+		let month_ordering = self.month.cmp(&other.month);
+		let day_ordering = self.day.cmp(&other.day);
+
+		if year_ordering != Ordering::Equal {
+			year_ordering
+		} else if month_ordering != Ordering::Equal {
+			month_ordering
+		} else if day_ordering != Ordering::Equal {
+			day_ordering
+		} else {
+			Ordering::Equal
+		}
 	}
 }
 

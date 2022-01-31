@@ -7,7 +7,7 @@ use self::Month::*;
 use core::str::FromStr;
 
 /// Months of the year
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Display, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum Month {
 	January = 1,
