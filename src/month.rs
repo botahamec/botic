@@ -179,6 +179,72 @@ impl Month {
 		}
 	}
 
+	// TODO docs
+
+	pub const fn from_ordinal_common(ordinal: u16) -> Self {
+		if ordinal < 31 {
+			January
+		} else if ordinal < 59 {
+			February
+		} else if ordinal < 90 {
+			March
+		} else if ordinal < 120 {
+			April
+		} else if ordinal < 151 {
+			May
+		} else if ordinal < 181 {
+			June
+		} else if ordinal < 212 {
+			July
+		} else if ordinal < 243 {
+			August
+		} else if ordinal < 273 {
+			September
+		} else if ordinal < 304 {
+			October
+		} else if ordinal < 334 {
+			November
+		} else {
+			December
+		}
+	}
+
+	pub const fn from_ordinal_leap(ordinal: u16) -> Self {
+		if ordinal < 31 {
+			January
+		} else if ordinal < 60 {
+			February
+		} else if ordinal < 91 {
+			March
+		} else if ordinal < 121 {
+			April
+		} else if ordinal < 152 {
+			May
+		} else if ordinal < 182 {
+			June
+		} else if ordinal < 213 {
+			July
+		} else if ordinal < 244 {
+			August
+		} else if ordinal < 274 {
+			September
+		} else if ordinal < 305 {
+			October
+		} else if ordinal < 335 {
+			November
+		} else {
+			December
+		}
+	}
+
+	pub const fn from_ordinal(ordinal: u16, leap_year: bool) -> Self {
+		if leap_year {
+			Self::from_ordinal_leap(ordinal)
+		} else {
+			Self::from_ordinal_common(ordinal)
+		}
+	}
+
 	/// Get the next month.
 	///
 	/// ```rust
@@ -224,6 +290,55 @@ impl Month {
 			October => September,
 			November => October,
 			December => November,
+		}
+	}
+
+	// TODO examples
+
+	/// Returns the number of days up to the end of the month in a year.
+	/// This doesn't account for leap day
+	pub const fn last_day_ordinal_common(self) -> u16 {
+		match self {
+			January => 31,
+			February => 59,
+			March => 90,
+			April => 120,
+			May => 151,
+			June => 181,
+			July => 212,
+			August => 243,
+			September => 273,
+			October => 304,
+			November => 334,
+			December => 365,
+		}
+	}
+
+	/// Returns the number of days up to the end of the month in a leap year.
+	pub const fn last_day_ordinal_leap(self) -> u16 {
+		match self {
+			January => 31,
+			February => 60,
+			March => 91,
+			April => 121,
+			May => 152,
+			June => 182,
+			July => 213,
+			August => 244,
+			September => 274,
+			October => 305,
+			November => 335,
+			December => 366,
+		}
+	}
+
+	/// Returns the number of days up to the end of the month.
+	/// Whether or not it's a leap year must be indicated
+	pub const fn last_day_ordinal(self, leap_year: bool) -> u16 {
+		if leap_year {
+			self.last_day_ordinal_leap()
+		} else {
+			self.last_day_ordinal_common()
 		}
 	}
 }

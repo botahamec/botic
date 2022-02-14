@@ -13,17 +13,17 @@ impl Year {
 	/// The earliest year that can be represented
 	pub const MIN: Self = Self(i16::MIN);
 
-	/// An equivalent of `Year::from(i32)`, which can be run at compile-time
+	/// An equivalent of `Year::from(i16)`, which can be run at compile-time
 	///
 	/// # Example
 	///
 	/// ```
 	/// use botic::Year;
 	///
-	/// const YEAR: Year = Year::from_i32(2021);
-	/// assert_eq!(2021, YEAR.as_i32());
+	/// const YEAR: Year = Year::from_i16(2021);
+	/// assert_eq!(2021, YEAR.as_i16());
 	/// ```
-	pub const fn from_i32(i: i16) -> Self {
+	pub const fn from_i16(i: i16) -> Self {
 		Self(i)
 	}
 
@@ -34,11 +34,11 @@ impl Year {
 	/// ```
 	/// use botic::Year;
 	///
-	/// const YEAR: Year = Year::from_i32(2021);
-	/// const YEAR_INT: i32 = YEAR.as_i32();
+	/// const YEAR: Year = Year::from_i16(2021);
+	/// const YEAR_INT: i16 = YEAR.as_i16();
 	/// assert_eq!(2021, YEAR_INT);
 	/// ```
-	pub const fn as_i32(self) -> i16 {
+	pub const fn as_i16(self) -> i16 {
 		self.0
 	}
 
@@ -50,7 +50,7 @@ impl Year {
 	/// ```
 	/// use botic::Year;
 	///
-	/// assert_eq!(Some(Year::from(2022)), Year::from_i32(2021).checked_add(1));
+	/// assert_eq!(Some(Year::from(2022)), Year::from_i16(2021).checked_add(1));
 	/// assert_eq!(None, Year::MAX.checked_add(1));
 	/// ```
 	pub const fn checked_add(self, rhs: i16) -> Option<Year> {
@@ -116,7 +116,7 @@ impl Year {
 	/// ```
 	/// use botic::Year;
 	///
-	/// assert_eq!(Some(Year::from(2020)), Year::from_i32(2021).checked_sub(1));
+	/// assert_eq!(Some(Year::from(2020)), Year::from_i16(2021).checked_sub(1));
 	/// assert_eq!(None, Year::MIN.checked_sub(1));
 	/// ```
 	pub const fn checked_sub(self, rhs: i16) -> Option<Year> {
@@ -172,6 +172,22 @@ impl Year {
 	/// assert_eq!(Year::MAX, Year::MIN.wrapping_sub(1));
 	pub const fn wrapping_sub(self, rhs: i16) -> Year {
 		Year(self.0.wrapping_sub(rhs))
+	}
+
+	/// Checks if the year is a leap year
+	///
+	/// # Example
+	///
+	/// ```
+	/// use botic::Year;
+	///
+	/// assert!(!Year::from(2022).is_leap_year());
+	/// assert!(Year::from(2020).is_leap_year());
+	/// assert!(Year::from(2000).is_leap_year());
+	/// assert!(!Year::from(2100).is_leap_year());
+	/// ```
+	pub const fn is_leap_year(self) -> bool {
+		(self.0 % 4 == 0) && ((self.0 % 100 != 0) || (self.0 % 400 == 0))
 	}
 }
 
