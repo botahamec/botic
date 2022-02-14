@@ -1,5 +1,6 @@
 use core::cmp::Ordering;
 use core::fmt::Display;
+use core::panic;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Time {
@@ -123,6 +124,234 @@ impl Time {
 	pub const fn nanosecond(self) -> u32 {
 		self.nanosecond
 	}
+
+	/// Adds the specified number of hours to the time.
+	/// This returns a tuple of the addition result and a boolean indicating
+	/// if overflow happened.
+	#[must_use]
+	pub const fn add_hours_overflowing(self, hours: isize) -> (Self, bool) {
+		let total_hours = self.hour as isize + hours;
+		let overflow = 0 > total_hours || total_hours >= 24;
+		let total_hours = total_hours % 24 + (24 * total_hours.is_negative() as isize);
+
+		let time = Self {
+			hour: total_hours as u8,
+			minute: self.minute,
+			second: self.second,
+			nanosecond: self.nanosecond,
+		};
+
+		(time, overflow)
+	}
+
+	/// Adds the specified number of minutes to the time.
+	/// This returns a tuple of the addition result and a boolean indicating
+	/// if overflow happened.
+	#[must_use]
+	pub const fn add_minutes_overflowing(self, minutes: isize) -> (Self, bool) {
+		let total_minutes = (self.minute as isize + minutes) % 60;
+		let total_minutes = total_minutes + (60 * total_minutes.is_negative() as isize);
+		let added_hours = (self.hour as isize + minutes) / 60;
+		let total_hours = self.hour as isize + added_hours;
+		let overflow = 0 > total_hours || total_hours >= 24;
+		let total_hours = total_hours % 24 + (24 * total_hours.is_negative() as isize);
+
+		let time = Self {
+			hour: total_hours as u8,
+			minute: total_minutes as u8,
+			second: self.second,
+			nanosecond: self.nanosecond,
+		};
+
+		(time, overflow)
+	}
+
+	/// Adds the specified number of seconds to the time.
+	/// This returns a tuple of the addition result and a boolean indicating
+	/// if overflow happened.
+	/// Leap seconds are not included in this calculation.
+	#[must_use]
+	pub const fn add_seconds_overflowing(self, seconds: isize) -> (Self, bool) {
+		let total_seconds = (self.second as isize + seconds) % 60;
+		let total_seconds = total_seconds + (60 * total_seconds.is_negative() as isize);
+		let added_minutes = (self.second as isize + seconds) / 60;
+		let total_minutes = (self.minute as isize + added_minutes) % 60;
+		let total_minutes = total_minutes + (60 * total_minutes.is_negative() as isize);
+		let added_hours = (self.hour as isize + added_minutes) / 60;
+		let total_hours = self.hour as isize + added_hours;
+		let overflow = 0 > total_hours || total_hours >= 24;
+		let total_hours = total_hours % 24 + (24 * total_hours.is_negative() as isize);
+
+		let time = Self {
+			hour: total_hours as u8,
+			minute: total_minutes as u8,
+			second: total_seconds as u8,
+			nanosecond: self.nanosecond,
+		};
+
+		(time, overflow)
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// This returns a tuple of the addition result and a boolean indicating
+	/// if overflow happened.
+	/// Leap seconds are not included in this calculation.
+	#[must_use]
+	pub const fn add_nanoseconds_overflowing(self, nanoseconds: isize) -> (Self, bool) {
+		let total_nanos = (self.nanosecond as isize + nanoseconds) % 1_000_000_000;
+		let total_nanos = total_nanos + (1_000_000_000 * total_nanos.is_negative() as isize);
+		let added_seconds = (self.nanosecond as isize + nanoseconds) / 1_000_000_000;
+		let total_seconds = (self.second as isize + added_seconds) % 60;
+		let total_seconds = total_seconds + (60 * total_seconds.is_negative() as isize);
+		let added_minutes = (self.second as isize + added_seconds) / 60;
+		let total_minutes = (self.minute as isize + added_minutes) % 60;
+		let total_minutes = total_minutes + (60 * total_minutes.is_negative() as isize);
+		let added_hours = (self.minute as isize + added_minutes) / 60;
+		let total_hours = self.hour as isize + added_hours;
+		let overflow = 0 > total_hours || total_hours >= 24;
+		let total_hours = total_hours % 24 + (24 * total_hours.is_negative() as isize);
+
+		let time = Self {
+			hour: total_hours as u8,
+			minute: total_minutes as u8,
+			second: total_seconds as u8,
+			nanosecond: total_nanos as u32,
+		};
+
+		(time, overflow)
+	}
+
+	/// Adds the specified number of hours to the time.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_hours_checked(self, hours: isize) -> Option<Self> {
+		let (time, overflow) = self.add_hours_overflowing(hours);
+
+		if overflow {
+			None
+		} else {
+			Some(time)
+		}
+	}
+
+	/// Adds the specified number of minutes to the time.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_minutes_checked(self, minutes: isize) -> Option<Self> {
+		let (time, overflow) = self.add_minutes_overflowing(minutes);
+
+		if overflow {
+			None
+		} else {
+			Some(time)
+		}
+	}
+
+	/// Adds the specified number of seconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_seconds_checked(self, seconds: isize) -> Option<Self> {
+		let (time, overflow) = self.add_seconds_overflowing(seconds);
+
+		if overflow {
+			None
+		} else {
+			Some(time)
+		}
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_nanoseconds_checked(self, nanoseconds: isize) -> Option<Self> {
+		let (time, overflow) = self.add_nanoseconds_overflowing(nanoseconds);
+
+		if overflow {
+			None
+		} else {
+			Some(time)
+		}
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_hours_wrapping(self, hours: isize) -> Self {
+		self.add_hours_overflowing(hours).0
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_minutes_wrapping(self, minutes: isize) -> Self {
+		self.add_minutes_overflowing(minutes).0
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_seconds_wrapping(self, seconds: isize) -> Self {
+		self.add_seconds_overflowing(seconds).0
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation.
+	/// Returns `None` if overflow occurs.
+	#[must_use]
+	pub const fn add_nanoseconds_wrapping(self, nanoseconds: isize) -> Self {
+		self.add_nanoseconds_overflowing(nanoseconds).0
+	}
+
+	/// Adds the specified number of hours to the time.
+	///
+	/// # Panics
+	///
+	/// Panics if the resulting time is 24 hours or more
+	#[must_use]
+	pub fn add_hours(self, hours: isize) -> Self {
+		self.add_hours_checked(hours)
+			.unwrap_or_else(|| panic!("Overflow when adding {hours} hours to {self}"))
+	}
+
+	/// Adds the specified number of minutes to the time
+	///
+	/// # Panics
+	///
+	/// Panics if the resulting time is 24 hours or more
+	#[must_use]
+	pub fn add_minutes(self, minutes: isize) -> Self {
+		self.add_minutes_checked(minutes)
+			.unwrap_or_else(|| panic!("Overflow when adding {minutes} minutes to {self}"))
+	}
+
+	/// Adds the specified number of seconds to the time.
+	/// Leap seconds are not included in this calculation
+	///
+	/// # Panics
+	///
+	/// Panics if the resulting time is 24 hours or more
+	#[must_use]
+	pub fn add_seconds(self, seconds: isize) -> Self {
+		self.add_seconds_checked(seconds)
+			.unwrap_or_else(|| panic!("Overflow when adding {seconds} seconds to {self}"))
+	}
+
+	/// Adds the specified number of nanoseconds to the time.
+	/// Leap seconds are not included in this calculation
+	///
+	/// # Panics
+	///
+	/// Panics if the resulting time is 24 hours or more
+	#[must_use]
+	pub fn add_nanoseconds(self, nanoseconds: isize) -> Self {
+		self.add_nanoseconds_checked(nanoseconds)
+			.unwrap_or_else(|| panic!("Overflow when adding {nanoseconds} nanoseconds to {self}"))
+	}
 }
 
 impl PartialOrd for Time {
@@ -166,8 +395,6 @@ impl Ord for Time {
 		}
 	}
 }
-
-// TODO addition
 
 impl Display for Time {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

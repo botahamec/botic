@@ -46,8 +46,6 @@ impl UtcOffset {
 	/// The UTC Timezone, represented as an offset
 	pub const UTC: Self = Self { offset_seconds: 0 };
 
-	// TODO validation
-
 	/// Makes a new `UtcOffset` timezone with the given timezone difference.
 	/// A positive number is the Eastern hemisphere. A negative number is the
 	/// Western hemisphere.
