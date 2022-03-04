@@ -9,3 +9,4 @@ license = "Unlicense"
 [dependencies]
 derive_more = "0.99"
 thiserror = "1"
+parking_lot = "0.12"

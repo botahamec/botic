@@ -92,6 +92,26 @@ impl NaiveDateTime {
 	pub const fn nanosecond(self) -> u32 {
 		self.time.nanosecond()
 	}
+
+	#[must_use]
+	pub fn add_seconds(self, seconds: isize) -> Self {
+		let time = self.time.add_seconds(seconds);
+
+		Self {
+			date: self.date,
+			time,
+		}
+	}
+
+	#[must_use]
+	pub fn add_nanoseconds(self, nanoseconds: isize) -> Self {
+		let time = self.time.add_nanoseconds(nanoseconds);
+
+		Self {
+			date: self.date,
+			time,
+		}
+	}
 }
 
 impl PartialOrd for NaiveDateTime {
