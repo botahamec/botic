@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-// TODO must uses
 // TODO serde support
 
 mod date;
