@@ -11,6 +11,7 @@ use crate::{
 
 static GLOBAL_LEAP_SECONDS: RwLock<LeapSeconds> = const_rwlock(LeapSeconds::empty());
 
+#[derive(Debug)]
 struct LeapSeconds(Vec<DateTime<Utc>>);
 
 impl LeapSeconds {
@@ -78,7 +79,7 @@ impl TimeZone for Tai {
 	fn utc_offset(&self, date_time: DateTime<Utc>) -> UtcOffset {
 		let leap_seconds = GLOBAL_LEAP_SECONDS.read();
 		let past_leap_seconds = leap_seconds.leap_seconds_before_inclusive(date_time);
-		UtcOffset::from_seconds(-(past_leap_seconds as isize + 10))
+		UtcOffset::from_seconds(-(past_leap_seconds as i32 + 10))
 	}
 
 	// TODO optimize
@@ -93,7 +94,7 @@ impl TimeZone for Tai {
 		// calculate the number of seconds that have passed since date_time in UTC
 		let leap_seconds = GLOBAL_LEAP_SECONDS.read();
 		let utc_dt = DateTime::from_utc(date_time, Utc);
-		let mut past_leap_seconds = leap_seconds.leap_seconds_before_inclusive(utc_dt);
+		let mut past_leap_seconds = dbg!(leap_seconds.leap_seconds_before_inclusive(utc_dt));
 		let mut prev_pls = 0; // use this to see if the number of leap seconds has been updated
 
 		// check if any leap seconds were found because of this calculation
@@ -101,12 +102,12 @@ impl TimeZone for Tai {
 		while past_leap_seconds != prev_pls {
 			prev_pls = past_leap_seconds;
 			// TODO think about this discard
-			let (ndt, _) = date_time.add_seconds_overflowing(past_leap_seconds as i64);
+			let (ndt, _) = dbg!(date_time.add_seconds_overflowing(past_leap_seconds as i64));
 			let utc_dt = DateTime::from_utc(ndt, Utc);
-			past_leap_seconds = leap_seconds.leap_seconds_before_inclusive(utc_dt);
+			past_leap_seconds = dbg!(leap_seconds.leap_seconds_before_inclusive(utc_dt));
 		}
 
-		Ok(UtcOffset::from_seconds(-(past_leap_seconds as isize + 10)))
+		Ok(UtcOffset::from_seconds(-(past_leap_seconds as i32 + 10)))
 	}
 }
 
@@ -126,7 +127,7 @@ mod tests {
 			.unwrap()
 		};
 
-		assert_eq!(offset, UtcOffset::from_seconds(-10))
+		assert_eq!(offset, UtcOffset::from_seconds(-10));
 	}
 
 	#[test]
@@ -140,6 +141,6 @@ mod tests {
 			.unwrap()
 		};
 
-		assert_eq!(offset, UtcOffset::from_seconds(-11))
+		assert_eq!(offset, UtcOffset::from_seconds(-11));
 	}
 }

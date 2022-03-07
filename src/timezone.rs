@@ -2,15 +2,20 @@ use crate::{DateTime, NaiveDateTime};
 use core::convert::Infallible;
 use core::fmt::Display;
 
-/// A type that can be used to represent a TimeZone
+/// A type that can be used to represent a `TimeZone`
 pub trait TimeZone: Sized + Eq + Display {
 	/// The error to return in case of a failure to convert the local time to UTC
 	type Err;
 
-	/// Given the time in the UTC timezone, determine the UtcOffset
+	/// Given the time in the UTC timezone, determine the `UtcOffset`
 	fn utc_offset(&self, date_time: DateTime<Utc>) -> UtcOffset;
 
 	/// Given the local date and time, figure out the offset from UTC
+	///
+	/// # Errors
+	///
+	/// This returns an Err if the given `NaiveDateTime` cannot exist in this timezone.
+	/// For example, the time may have been skipped because of daylight savings time.
 	fn offset_from_local_time(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err>;
 }
 
@@ -39,7 +44,7 @@ impl Display for Utc {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 /// A timezone with a fixed offset from UTC
 pub struct UtcOffset {
-	offset_seconds: isize,
+	offset_seconds: i32,
 }
 
 impl UtcOffset {
@@ -49,7 +54,8 @@ impl UtcOffset {
 	/// Makes a new `UtcOffset` timezone with the given timezone difference.
 	/// A positive number is the Eastern hemisphere. A negative number is the
 	/// Western hemisphere.
-	pub const fn from_seconds(seconds: isize) -> Self {
+	#[must_use]
+	pub const fn from_seconds(seconds: i32) -> Self {
 		Self {
 			offset_seconds: seconds,
 		}
@@ -58,19 +64,22 @@ impl UtcOffset {
 	/// Makes a new `UtcOffset` timezone with the given timezone difference.
 	/// A positive number is the Eastern hemisphere. A negative number is the
 	/// Western hemisphere.
-	pub const fn from_hours(hours: isize) -> Self {
+	#[must_use]
+	pub const fn from_hours(hours: i32) -> Self {
 		Self::from_seconds(hours * 3600)
 	}
 
-	/// The number of hours this timezone is ahead of UTC. THis number is
+	/// The number of hours this timezone is ahead of UTC. This number is
 	/// negative if the timezone is in the Western hemisphere
+	#[must_use]
 	pub fn hours_ahead(self) -> f32 {
 		self.offset_seconds as f32 / 3600.0
 	}
 
 	/// The number of seconds this timezone is ahead of UTC. This number is
 	/// negative if the timezone is in the Western hemisphere
-	pub const fn seconds_ahead(self) -> isize {
+	#[must_use]
+	pub const fn seconds_ahead(self) -> i32 {
 		self.offset_seconds
 	}
 }
@@ -125,27 +134,27 @@ mod tests {
 	fn utc_offset_display_no_offset() {
 		let offset = UtcOffset::UTC;
 		let offset_str = offset.to_string();
-		assert_eq!(offset_str, "UTC")
+		assert_eq!(offset_str, "UTC");
 	}
 
 	#[test]
 	fn utc_offset_display_positive_offset() {
 		let offset = UtcOffset::from_hours(1);
 		let offset_str = offset.to_string();
-		assert_eq!(offset_str, "UTC+1")
+		assert_eq!(offset_str, "UTC+1");
 	}
 
 	#[test]
 	fn utc_offset_display_minute_offset() {
 		let offset = UtcOffset::from_seconds(60);
 		let offset_str = offset.to_string();
-		assert_eq!(offset_str, "UTC+00:01")
+		assert_eq!(offset_str, "UTC+00:01");
 	}
 
 	#[test]
 	fn utc_offset_display_second_offset() {
 		let offset = UtcOffset::from_seconds(-32);
 		let offset_str = offset.to_string();
-		assert_eq!(offset_str, "UTC-00:00:32")
+		assert_eq!(offset_str, "UTC-00:00:32");
 	}
 }

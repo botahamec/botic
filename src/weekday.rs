@@ -30,6 +30,7 @@ impl Weekday {
 	/// assert_eq!(Weekday::Monday, Weekday::from_name("Monday").unwrap());
 	/// assert_eq!(None, Weekday::from_name("monday"));
 	/// ```
+	#[must_use]
 	pub fn from_name(name: &str) -> Option<Self> {
 		match name {
 			"Monday" => Some(Monday),
@@ -52,6 +53,7 @@ impl Weekday {
 	///
 	/// assert_eq!(Weekday::Tuesday, Weekday::Monday.next());
 	/// ```
+	#[must_use]
 	pub const fn next(self) -> Self {
 		match self {
 			Monday => Tuesday,
@@ -73,6 +75,7 @@ impl Weekday {
 	///
 	/// assert_eq!(Weekday::Sunday, Weekday::Monday.previous());
 	/// ```
+	#[must_use]
 	pub const fn previous(self) -> Self {
 		match self {
 			Monday => Sunday,
@@ -97,6 +100,7 @@ impl Weekday {
 	/// assert_eq!(0, Weekday::Monday.number_days_from_monday());
 	/// assert_eq!(6, Weekday::Sunday.number_days_from_monday());
 	/// ```
+	#[must_use]
 	pub const fn number_days_from_monday(self) -> u8 {
 		self as u8
 	}
@@ -113,6 +117,7 @@ impl Weekday {
 	/// assert_eq!(1, Weekday::Monday.number_from_monday());
 	/// assert_eq!(7, Weekday::Sunday.number_from_monday());
 	/// ```
+	#[must_use]
 	pub const fn number_from_monday(self) -> u8 {
 		self.number_days_from_monday() + 1
 	}
@@ -130,6 +135,7 @@ impl Weekday {
 	/// assert_eq!(1, Weekday::Monday.number_days_from_sunday());
 	/// ```
 	// TODO benchmark this
+	#[must_use]
 	pub const fn number_days_from_sunday(self) -> u8 {
 		match self {
 			Sunday => 0,
@@ -149,6 +155,7 @@ impl Weekday {
 	/// assert_eq!(1, Weekday::Sunday.number_from_sunday());
 	/// assert_eq!(2, Weekday::Monday.number_from_sunday());
 	/// ```
+	#[must_use]
 	pub const fn number_from_sunday(self) -> u8 {
 		self.number_days_from_sunday() + 1
 	}

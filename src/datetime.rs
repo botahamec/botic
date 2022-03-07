@@ -45,50 +45,62 @@ impl<Tz: TimeZone> DateTime<Tz> {
 impl NaiveDateTime {
 	// TODO docs
 
+	#[must_use]
 	pub const fn new(date: Date, time: Time) -> Self {
 		Self { date, time }
 	}
 
+	#[must_use]
 	pub const fn date(self) -> Date {
 		self.date
 	}
 
+	#[must_use]
 	pub const fn time(self) -> Time {
 		self.time
 	}
 
+	#[must_use]
 	pub const fn year(self) -> Year {
 		self.date.year()
 	}
 
+	#[must_use]
 	pub const fn month(self) -> Month {
 		self.date.month()
 	}
 
+	#[must_use]
 	pub const fn day(self) -> u8 {
 		self.date.day()
 	}
 
+	#[must_use]
 	pub const fn hour(self) -> u8 {
 		self.time.hour()
 	}
 
+	#[must_use]
 	pub const fn minute(self) -> u8 {
 		self.time.minute()
 	}
 
+	#[must_use]
 	pub const fn second(self) -> u8 {
 		self.time.second()
 	}
 
+	#[must_use]
 	pub const fn millisecond(self) -> u16 {
 		self.time.millisecond()
 	}
 
+	#[must_use]
 	pub const fn microsecond(self) -> u32 {
 		self.time.microsecond()
 	}
 
+	#[must_use]
 	pub const fn nanosecond(self) -> u32 {
 		self.time.nanosecond()
 	}
@@ -151,7 +163,7 @@ impl<Tz: TimeZone, Other: TimeZone> PartialEq<DateTime<Other>> for DateTime<Tz> 
 
 impl<Tz: TimeZone> Hash for DateTime<Tz> {
 	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-		self.utc_datetime.hash(state)
+		self.utc_datetime.hash(state);
 	}
 }
 
@@ -181,10 +193,10 @@ impl<Tz: TimeZone> Display for DateTime<Tz> {
 
 impl From<UnixTimestamp> for NaiveDateTime {
 	fn from(timestamp: UnixTimestamp) -> Self {
-		const UNIX_EPOCH_DAYS_AFTER_CE: isize = Date::UNIX_EPOCH.days_after_common_era();
+		const UNIX_EPOCH_DAYS_AFTER_CE: i64 = Date::UNIX_EPOCH.days_after_common_era();
 		let days_after_unix_epoch = timestamp.seconds_since_unix_epoch() / 86_400;
 		let days_after_ce = days_after_unix_epoch + UNIX_EPOCH_DAYS_AFTER_CE as i64;
-		let date = Date::from_days_after_common_era(days_after_ce as isize);
+		let date = Date::from_days_after_common_era(days_after_ce);
 		let seconds_after_midnight = timestamp.seconds_since_unix_epoch() % 86_400;
 		let nanoseconds = timestamp.nanosecond();
 		let time = Time::MIDNIGHT

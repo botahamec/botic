@@ -36,6 +36,7 @@ impl Month {
 	/// assert_eq!(Some(Month::January), Month::from_u8(1));
 	/// assert_eq!(None, Month::from_u8(0));
 	/// assert_eq!(None, Month::from_u8(13));
+	#[must_use]
 	pub const fn from_u8(num: u8) -> Option<Self> {
 		match num {
 			1 => Some(January),
@@ -66,6 +67,7 @@ impl Month {
 	/// assert_eq!(Some(Month::January), Month::from_abbreviation("Jan"));
 	/// assert_eq!(None, Month::from_abbreviation("Janu"));
 	/// ```
+	#[must_use]
 	pub fn from_abbreviation(abbreviation: &str) -> Option<Self> {
 		match abbreviation {
 			"Jan" => Some(January),
@@ -96,6 +98,7 @@ impl Month {
 	/// assert_eq!(Some(Month::January), Month::from_name("January"));
 	/// assert_eq!(None, Month::from_name("Janu"));
 	/// ```
+	#[must_use]
 	pub fn from_name(name: &str) -> Option<Self> {
 		match name {
 			"January" => Some(January),
@@ -123,6 +126,7 @@ impl Month {
 	///
 	/// assert_eq!(1, Month::January.number());
 	/// ```
+	#[must_use]
 	pub const fn number(self) -> u8 {
 		self as u8
 	}
@@ -136,6 +140,7 @@ impl Month {
 	///
 	/// assert_eq!("January", Month::January.name());
 	/// ```
+	#[must_use]
 	pub const fn name(self) -> &'static str {
 		match self {
 			January => "January",
@@ -162,6 +167,7 @@ impl Month {
 	///
 	/// assert_eq!("Jan", Month::January.abbreviation());
 	/// ```
+	#[must_use]
 	pub const fn abbreviation(self) -> &'static str {
 		match self {
 			January => "Jan",
@@ -181,6 +187,7 @@ impl Month {
 
 	// TODO docs
 
+	#[must_use]
 	pub const fn from_ordinal_common(ordinal: u16) -> Self {
 		if ordinal < 31 {
 			January
@@ -209,6 +216,7 @@ impl Month {
 		}
 	}
 
+	#[must_use]
 	pub const fn from_ordinal_leap(ordinal: u16) -> Self {
 		if ordinal < 31 {
 			January
@@ -237,6 +245,7 @@ impl Month {
 		}
 	}
 
+	#[must_use]
 	pub const fn from_ordinal(ordinal: u16, leap_year: bool) -> Self {
 		if leap_year {
 			Self::from_ordinal_leap(ordinal)
@@ -252,6 +261,7 @@ impl Month {
 	///
 	/// assert_eq!(Month::January.next(), Month::February);
 	/// ```
+	#[must_use]
 	pub const fn next(self) -> Self {
 		match self {
 			January => February,
@@ -276,6 +286,7 @@ impl Month {
 	///
 	/// assert_eq!(Month::January.previous(), Month::December);
 	/// ```
+	#[must_use]
 	pub const fn previous(self) -> Self {
 		match self {
 			January => December,
@@ -297,6 +308,7 @@ impl Month {
 
 	/// Returns the number of days up to the end of the month in a year.
 	/// This doesn't account for leap day
+	#[must_use]
 	pub const fn last_day_ordinal_common(self) -> u16 {
 		match self {
 			January => 31,
@@ -315,6 +327,7 @@ impl Month {
 	}
 
 	/// Returns the number of days up to the end of the month in a leap year.
+	#[must_use]
 	pub const fn last_day_ordinal_leap(self) -> u16 {
 		match self {
 			January => 31,
@@ -334,6 +347,7 @@ impl Month {
 
 	/// Returns the number of days up to the end of the month.
 	/// Whether or not it's a leap year must be indicated
+	#[must_use]
 	pub const fn last_day_ordinal(self, leap_year: bool) -> u16 {
 		if leap_year {
 			self.last_day_ordinal_leap()

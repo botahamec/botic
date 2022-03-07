@@ -66,19 +66,20 @@ impl Date {
 
 	// TODO handle BCE properly
 	#[must_use]
-	pub const fn days_after_common_era(self) -> isize {
+	pub const fn days_after_common_era(self) -> i64 {
 		let year = self.year.wrapping_sub(1);
-		let leap_years = (year.as_i16() / 4 - year.as_i16() / 100 + year.as_i16() / 400) as isize;
-		let month_last_day_ordinal = self.month.last_day_ordinal(self.is_leap_year()) as isize;
+		let leap_years = (year.as_i16() / 4 - year.as_i16() / 100 + year.as_i16() / 400) as i64;
+		let month_last_day_ordinal =
+			self.month.previous().last_day_ordinal(self.is_leap_year()) as i64;
 
-		year.as_i16() as isize * 365 + leap_years + month_last_day_ordinal + self.day as isize - 1
+		year.as_i16() as i64 * 365 + leap_years + month_last_day_ordinal + self.day as i64 - 1
 	}
 
 	// TODO test
 	#[must_use]
-	pub const fn from_days_after_common_era(days: isize) -> Self {
-		let era = days / 146097; // an era is a period of 400 year
-		let day_of_era = days - (era * 146097);
+	pub const fn from_days_after_common_era(days: i64) -> Self {
+		let era = days / 146_097; // an era is a period of 400 year
+		let day_of_era = days - (era * 146_097);
 		let year_of_era = day_of_era / 365;
 		let year = year_of_era + (era * 400);
 		let ordinal = day_of_era - (365 * year + year / 4 - year / 100);
@@ -92,7 +93,7 @@ impl Date {
 	}
 
 	#[must_use]
-	pub const fn add_days(self, days: isize) -> Self {
+	pub const fn add_days(self, days: i64) -> Self {
 		let total_days_since_ce = self.days_after_common_era() + days;
 		Self::from_days_after_common_era(total_days_since_ce)
 	}
@@ -144,7 +145,7 @@ impl Display for Date {
 			self.year,
 			self.month as u8,
 			self.day,
-			width = 4 + (self.year() < 0.into()) as usize
+			width = 4 + usize::from(self.year() < 0.into())
 		)
 	}
 }

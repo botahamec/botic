@@ -6,7 +6,7 @@
 mod date;
 mod datetime;
 mod month;
-mod tai;
+pub mod tai;
 mod time;
 mod timestamp;
 pub mod timezone;
