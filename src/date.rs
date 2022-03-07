@@ -17,6 +17,9 @@ impl Date {
 	/// The latest date which can be represented
 	pub const MAX: Self = unsafe { Self::from_ymd_unchecked(Year::MAX, Month::December, 31) };
 
+	pub const UNIX_EPOCH: Self =
+		unsafe { Self::from_ymd_unchecked(Year::from_i16(1970), Month::January, 1) };
+
 	// TODO validated from_calendar_date
 
 	/// Creates a date without checking to make sure that it's valid.
@@ -34,29 +37,35 @@ impl Date {
 	/// # Safety
 	///
 	/// This function results in undefined behavior if the given date is not a real date
+	#[must_use]
 	pub const unsafe fn from_ymd_unchecked(year: Year, month: Month, day: u8) -> Self {
 		Self { year, month, day }
 	}
 
 	// TODO docs
 
+	#[must_use]
 	pub const fn year(self) -> Year {
 		self.year
 	}
 
+	#[must_use]
 	pub const fn month(self) -> Month {
 		self.month
 	}
 
+	#[must_use]
 	pub const fn day(self) -> u8 {
 		self.day
 	}
 
+	#[must_use]
 	pub const fn is_leap_year(self) -> bool {
 		self.year.is_leap_year()
 	}
 
 	// TODO handle BCE properly
+	#[must_use]
 	pub const fn days_after_common_era(self) -> isize {
 		let year = self.year.wrapping_sub(1);
 		let leap_years = (year.as_i16() / 4 - year.as_i16() / 100 + year.as_i16() / 400) as isize;
@@ -66,6 +75,7 @@ impl Date {
 	}
 
 	// TODO test
+	#[must_use]
 	pub const fn from_days_after_common_era(days: isize) -> Self {
 		let era = days / 146097; // an era is a period of 400 year
 		let day_of_era = days - (era * 146097);

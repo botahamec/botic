@@ -352,6 +352,23 @@ impl Time {
 		self.add_nanoseconds_checked(nanoseconds)
 			.unwrap_or_else(|| panic!("Overflow when adding {nanoseconds} nanoseconds to {self}"))
 	}
+
+	/// Gets the number of seconds since midnight
+	#[must_use]
+	pub fn seconds_from_midnight(self) -> u32 {
+		self.hour as u32 * 3_600_000_000
+			+ self.minute as u32 * 60_000_000
+			+ self.second as u32 * 1_000_000
+	}
+
+	/// Gets the number of nanoseconds since midnight
+	#[must_use]
+	pub fn nanoseconds_from_midnight(self) -> u64 {
+		self.hour as u64 * 3_600_000_000_000
+			+ self.minute as u64 * 60_000_000_000
+			+ self.second as u64 * 1_000_000_000
+			+ self.nanosecond as u64
+	}
 }
 
 impl PartialOrd for Time {

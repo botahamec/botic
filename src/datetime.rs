@@ -1,6 +1,6 @@
 use crate::{
 	timezone::{Utc, UtcOffset},
-	Date, Month, Time, TimeZone, Year,
+	Date, Month, Time, TimeZone, UnixTimestamp, Year,
 };
 
 use core::{cmp::Ordering, fmt::Display, hash::Hash};
@@ -94,23 +94,21 @@ impl NaiveDateTime {
 	}
 
 	#[must_use]
-	pub fn add_seconds(self, seconds: isize) -> Self {
-		let time = self.time.add_seconds(seconds);
+	pub fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.into();
+		let (timestamp, overflow) = timestamp.add_seconds_overflowing(seconds);
+		let datetime: NaiveDateTime = timestamp.into();
 
-		Self {
-			date: self.date,
-			time,
-		}
+		(datetime, overflow)
 	}
 
 	#[must_use]
-	pub fn add_nanoseconds(self, nanoseconds: isize) -> Self {
-		let time = self.time.add_nanoseconds(nanoseconds);
+	pub fn add_nanoseconds_overflowing(self, nanoseconds: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.into();
+		let (timestamp, overflow) = timestamp.add_nanoseconds_overflowing(nanoseconds);
+		let datetime: NaiveDateTime = timestamp.into();
 
-		Self {
-			date: self.date,
-			time,
-		}
+		(datetime, overflow)
 	}
 }
 
@@ -169,8 +167,6 @@ impl<Tz: TimeZone> Ord for DateTime<Tz> {
 	}
 }
 
-// TODO addition
-
 impl Display for NaiveDateTime {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		write!(f, "{} {}", self.date, self.time)
@@ -180,5 +176,21 @@ impl Display for NaiveDateTime {
 impl<Tz: TimeZone> Display for DateTime<Tz> {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		write!(f, "{} {}", self.utc_datetime, self.timezone)
+	}
+}
+
+impl From<UnixTimestamp> for NaiveDateTime {
+	fn from(timestamp: UnixTimestamp) -> Self {
+		const UNIX_EPOCH_DAYS_AFTER_CE: isize = Date::UNIX_EPOCH.days_after_common_era();
+		let days_after_unix_epoch = timestamp.seconds_since_unix_epoch() / 86_400;
+		let days_after_ce = days_after_unix_epoch + UNIX_EPOCH_DAYS_AFTER_CE as i64;
+		let date = Date::from_days_after_common_era(days_after_ce as isize);
+		let seconds_after_midnight = timestamp.seconds_since_unix_epoch() % 86_400;
+		let nanoseconds = timestamp.nanosecond();
+		let time = Time::MIDNIGHT
+			.add_seconds(seconds_after_midnight as isize)
+			.add_nanoseconds(nanoseconds as isize);
+
+		Self::new(date, time)
 	}
 }

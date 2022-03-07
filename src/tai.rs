@@ -100,7 +100,8 @@ impl TimeZone for Tai {
 		// keep checking until there is no longer a change in the total leap seconds
 		while past_leap_seconds != prev_pls {
 			prev_pls = past_leap_seconds;
-			let ndt = date_time.add_seconds(past_leap_seconds as isize);
+			// TODO think about this discard
+			let (ndt, _) = date_time.add_seconds_overflowing(past_leap_seconds as i64);
 			let utc_dt = DateTime::from_utc(ndt, Utc);
 			past_leap_seconds = leap_seconds.leap_seconds_before_inclusive(utc_dt);
 		}
