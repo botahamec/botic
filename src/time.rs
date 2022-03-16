@@ -23,6 +23,7 @@ impl Time {
 	///
 	/// Creating a time where the hour is greater than 23, minute is greater than 59, or second is
 	/// greater than 60 results in undefined behavior
+	#[must_use]
 	pub const unsafe fn from_hms_unchecked(hour: u8, minute: u8, second: u8) -> Self {
 		Self {
 			hour,
@@ -38,6 +39,7 @@ impl Time {
 	///
 	/// Creating a time where the hour is greater than 23, minute is greater than 59, second is
 	/// greater than 60, or millisecond is greater than 999 results in undefined behavior
+	#[must_use]
 	pub const unsafe fn from_hms_milli_unchecked(
 		hour: u8,
 		minute: u8,
@@ -58,6 +60,7 @@ impl Time {
 	///
 	/// Creating a time where the hour is greater than 23, minute is greater than 59, second is
 	/// greater than 60, or microsecond is greater than 999,999 results in undefined behavior
+	#[must_use]
 	pub const unsafe fn from_hms_micro_unchecked(
 		hour: u8,
 		minute: u8,
@@ -78,6 +81,7 @@ impl Time {
 	///
 	/// Creating a time where the hour is greater than 23, minute is greater than 59, second is
 	/// greater than 60, or nanosecond is greater than 999,999,999 results in undefined behavior
+	#[must_use]
 	pub const unsafe fn from_hms_nano_unchecked(
 		hour: u8,
 		minute: u8,
@@ -93,34 +97,40 @@ impl Time {
 	}
 
 	/// Get the clock hour. The returned value will always be in the range `0..24`
+	#[must_use]
 	pub const fn hour(self) -> u8 {
 		self.hour
 	}
 
 	/// Get the minute within the hour. The returned value will always be in the range `0..60`
+	#[must_use]
 	pub const fn minute(self) -> u8 {
 		self.minute
 	}
 
 	// Get the second within the minute. The returned value will always be in the range `0..=60`
+	#[must_use]
 	pub const fn second(self) -> u8 {
 		self.second
 	}
 
 	// Get the millisecond within the second.
 	// The returned value will always be in the range `0..1_000`
+	#[must_use]
 	pub const fn millisecond(self) -> u16 {
 		(self.nanosecond / 1_000_000) as u16
 	}
 
 	// Get the microsecond within the second.
 	// The returned value will always be in the range `0..1_000_000`
+	#[must_use]
 	pub const fn microsecond(self) -> u32 {
 		(self.nanosecond / 1_000) as u32
 	}
 
 	// Get the nanosecond within the second.
 	// The returned value will always be in the range `0..1_000_000`
+	#[must_use]
 	pub const fn nanosecond(self) -> u32 {
 		self.nanosecond
 	}
@@ -352,6 +362,23 @@ impl Time {
 		self.add_nanoseconds_checked(nanoseconds)
 			.unwrap_or_else(|| panic!("Overflow when adding {nanoseconds} nanoseconds to {self}"))
 	}
+
+	/// Gets the number of seconds since midnight
+	#[must_use]
+	pub fn seconds_from_midnight(self) -> u32 {
+		u32::from(self.hour) * 3_600_000_000
+			+ u32::from(self.minute) * 60_000_000
+			+ u32::from(self.second) * 1_000_000
+	}
+
+	/// Gets the number of nanoseconds since midnight
+	#[must_use]
+	pub fn nanoseconds_from_midnight(self) -> u64 {
+		u64::from(self.hour) * 3_600_000_000_000
+			+ u64::from(self.minute) * 60_000_000_000
+			+ u64::from(self.second) * 1_000_000_000
+			+ u64::from(self.nanosecond)
+	}
 }
 
 impl PartialOrd for Time {
@@ -398,7 +425,7 @@ impl Ord for Time {
 
 impl Display for Time {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-		let seconds = self.second as f64 + (self.nanosecond as f64 / 1_000_000_000.0);
+		let seconds = f64::from(self.second) + (f64::from(self.nanosecond) / 1_000_000_000.0);
 		if self.nanosecond() == 0 {
 			write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
 		} else if self.second < 10 {

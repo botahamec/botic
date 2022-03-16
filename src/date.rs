@@ -39,6 +39,9 @@ impl Date {
 	/// The latest date which can be represented
 	pub const MAX: Self = unsafe { Self::from_ymd_unchecked(Year::MAX, Month::December, 31) };
 
+	pub const UNIX_EPOCH: Self =
+		unsafe { Self::from_ymd_unchecked(Year::from_i16(1970), Month::January, 1) };
+
 	// TODO validated from_calendar_date
 
 	/// Creates a date without checking to make sure that it's valid.
@@ -56,24 +59,29 @@ impl Date {
 	/// # Safety
 	///
 	/// This function results in undefined behavior if the given date is not a real date
+	#[must_use]
 	pub const unsafe fn from_ymd_unchecked(year: Year, month: Month, day: u8) -> Self {
 		Self { year, month, day }
 	}
 
 	// TODO docs
 
+	#[must_use]
 	pub const fn year(self) -> Year {
 		self.year
 	}
 
+	#[must_use]
 	pub const fn month(self) -> Month {
 		self.month
 	}
 
+	#[must_use]
 	pub const fn day(self) -> u8 {
 		self.day
 	}
 
+	#[must_use]
 	pub const fn is_leap_year(self) -> bool {
 		self.year.is_leap_year()
 	}
@@ -115,18 +123,21 @@ impl Date {
 	}
 
 	// TODO handle BCE properly
-	pub const fn days_after_common_era(self) -> isize {
+	#[must_use]
+	pub const fn days_after_common_era(self) -> i64 {
 		let year = self.year.wrapping_sub(1);
-		let leap_years = (year.as_i16() / 4 - year.as_i16() / 100 + year.as_i16() / 400) as isize;
-		let month_last_day_ordinal = self.month.last_day_ordinal(self.is_leap_year()) as isize;
+		let leap_years = (year.as_i16() / 4 - year.as_i16() / 100 + year.as_i16() / 400) as i64;
+		let month_last_day_ordinal =
+			self.month.previous().last_day_ordinal(self.is_leap_year()) as i64;
 
-		year.as_i16() as isize * 365 + leap_years + month_last_day_ordinal + self.day as isize - 1
+		year.as_i16() as i64 * 365 + leap_years + month_last_day_ordinal + self.day as i64 - 1
 	}
 
 	// TODO test
-	pub const fn from_days_after_common_era(days: isize) -> Self {
-		let era = days / 146097; // an era is a period of 400 year
-		let day_of_era = days - (era * 146097);
+	#[must_use]
+	pub const fn from_days_after_common_era(days: i64) -> Self {
+		let era = days / 146_097; // an era is a period of 400 year
+		let day_of_era = days - (era * 146_097);
 		let year_of_era = day_of_era / 365;
 		let year = year_of_era + (era * 400);
 		let ordinal = day_of_era - (365 * year + year / 4 - year / 100);
@@ -140,7 +151,7 @@ impl Date {
 	}
 
 	#[must_use]
-	pub const fn add_days(self, days: isize) -> Self {
+	pub const fn add_days(self, days: i64) -> Self {
 		let total_days_since_ce = self.days_after_common_era() + days;
 		Self::from_days_after_common_era(total_days_since_ce)
 	}
@@ -192,7 +203,7 @@ impl Display for Date {
 			self.year,
 			self.month as u8,
 			self.day,
-			width = 4 + (self.year() < 0.into()) as usize
+			width = 4 + usize::from(self.year() < 0.into())
 		)
 	}
 }

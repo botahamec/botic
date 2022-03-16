@@ -2,7 +2,11 @@
 name = "botic"
 version = "0.1.0"
 edition = "2021"
+description = "A time crate that handles leap seconds"
+repository = "https://github.com/botahamec/botic"
 license = "Unlicense"
+keywords = ["date", "time", "calendar"]
+categories = ["date-and-time", "parser-implementations", "value-formatting", "data-structures"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
