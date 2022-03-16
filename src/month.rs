@@ -181,6 +181,7 @@ impl Month {
 
 	// TODO docs
 
+	// TODO handle ordinals greater than 365
 	pub const fn from_ordinal_common(ordinal: u16) -> Self {
 		if ordinal < 31 {
 			January
@@ -314,6 +315,48 @@ impl Month {
 		}
 	}
 
+	pub const fn days_common_year(self) -> u8 {
+		match self {
+			January => 31,
+			February => 28,
+			March => 31,
+			April => 30,
+			May => 31,
+			June => 30,
+			July => 31,
+			August => 31,
+			September => 30,
+			October => 31,
+			November => 30,
+			December => 31,
+		}
+	}
+
+	pub const fn days_leap_year(self) -> u8 {
+		match self {
+			January => 31,
+			February => 29,
+			March => 31,
+			April => 30,
+			May => 31,
+			June => 30,
+			July => 31,
+			August => 31,
+			September => 30,
+			October => 31,
+			November => 30,
+			December => 31,
+		}
+	}
+
+	pub const fn days(self, leap_year: bool) -> u8 {
+		if leap_year {
+			self.days_leap_year()
+		} else {
+			self.days_common_year()
+		}
+	}
+
 	/// Returns the number of days up to the end of the month in a leap year.
 	pub const fn last_day_ordinal_leap(self) -> u16 {
 		match self {
@@ -340,6 +383,15 @@ impl Month {
 		} else {
 			self.last_day_ordinal_common()
 		}
+	}
+
+	pub const fn add_overflowing(self, months: u8) -> (Self, u8) {
+		let zero_indexed_num = ((self as u16) - 1) + months as u16;
+		let wraps = (zero_indexed_num as u8) / 12;
+		let zero_indexed_month = zero_indexed_num % 12;
+		let month = Self::from_u8((zero_indexed_month as u8) + 1).unwrap();
+
+		(month, wraps)
 	}
 }
 

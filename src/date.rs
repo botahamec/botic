@@ -3,11 +3,33 @@ use crate::{Month, Year};
 use core::cmp::Ordering;
 use core::fmt::Display;
 
+use thiserror::Error;
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Date {
 	year: Year,
 	month: Month,
 	day: u8,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Error)]
+#[error("Tried to construct {given_day} {month}, but {month} only has {month_max_day} days")]
+pub struct DayGreaterThanMaximumForMonthError {
+	month: Month,
+	given_day: u8,
+	month_max_day: u8,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Error)]
+#[error("Tried to construct a leap day in {0} which is not a leap year")]
+pub struct LeapDayNotInLeapYearError(Year);
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Error)]
+pub enum InvalidDateError {
+	#[error("{0}")]
+	DayTooBig(DayGreaterThanMaximumForMonthError),
+	#[error("{0}")]
+	NonLeapYear(LeapDayNotInLeapYearError),
 }
 
 impl Date {
@@ -54,6 +76,42 @@ impl Date {
 
 	pub const fn is_leap_year(self) -> bool {
 		self.year.is_leap_year()
+	}
+
+	// TODO overflow handling
+	pub const fn add_years(self, years: i16) -> Result<Self, LeapDayNotInLeapYearError> {
+		let year = self.year + years;
+
+		if self.day == 29 && self.month == Month::February && !year.is_leap_year() {
+			Err(LeapDayNotInLeapYearError(self.year))
+		} else {
+			Ok(Self {
+				year,
+				month: self.month,
+				day: self.day,
+			})
+		}
+	}
+
+	// TODO overflow handling
+	pub const fn add_months(self, months: i8) -> Result<Self, DayGreaterThanMaximumForMonthError> {
+		let (month, years_to_add) = self.month.add_overflowing(months);
+		let year = self.year + years_to_add;
+		let max_days_for_month = month.days(year.is_leap_year());
+
+		if self.day > max_days_for_month {
+			Err(DayGreaterThanMaximumForMonthError {
+				month,
+				given_day: self.day,
+				month_max_day: max_days_for_month,
+			})
+		} else {
+			Ok(Self {
+				year,
+				month,
+				day: self.day,
+			})
+		}
 	}
 
 	// TODO handle BCE properly
