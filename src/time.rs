@@ -365,10 +365,10 @@ impl Time {
 
 	/// Gets the number of seconds since midnight
 	#[must_use]
-	pub fn seconds_from_midnight(self) -> u32 {
-		u32::from(self.hour) * 3_600_000_000
-			+ u32::from(self.minute) * 60_000_000
-			+ u32::from(self.second) * 1_000_000
+	pub const fn seconds_from_midnight(self) -> u32 {
+		self.hour as u32 * 3_600_000_000
+			+ self.minute as u32 * 60_000_000
+			+ self.second as u32 * 1_000_000
 	}
 
 	/// Gets the number of nanoseconds since midnight

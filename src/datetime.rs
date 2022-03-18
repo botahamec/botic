@@ -1,4 +1,5 @@
 use crate::{
+	date::{DayGreaterThanMaximumForMonthError, LeapDayNotInLeapYearError},
 	timezone::{Utc, UtcOffset},
 	Date, Month, Time, TimeZone, UnixTimestamp, Year,
 };
@@ -48,6 +49,22 @@ impl NaiveDateTime {
 	#[must_use]
 	pub const fn new(date: Date, time: Time) -> Self {
 		Self { date, time }
+	}
+
+	pub const fn from_timestamp(timestamp: UnixTimestamp) -> Self {
+		const UNIX_EPOCH_DAYS_AFTER_CE: i64 = Date::UNIX_EPOCH.days_after_common_era();
+		let days_after_unix_epoch = timestamp.seconds_since_unix_epoch() / 86_400;
+		let days_after_ce = days_after_unix_epoch + UNIX_EPOCH_DAYS_AFTER_CE as i64;
+		let date = Date::from_days_after_common_era(days_after_ce);
+		let seconds_after_midnight = timestamp.seconds_since_unix_epoch() % 86_400;
+		let nanoseconds = timestamp.nanosecond();
+		let time = Time::MIDNIGHT
+			.add_seconds_overflowing(seconds_after_midnight as isize)
+			.0
+			.add_nanoseconds_overflowing(nanoseconds as isize)
+			.0;
+
+		Self::new(date, time)
 	}
 
 	#[must_use]
@@ -106,19 +123,97 @@ impl NaiveDateTime {
 	}
 
 	#[must_use]
-	pub fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.into();
-		let (timestamp, overflow) = timestamp.add_seconds_overflowing(seconds);
-		let datetime: NaiveDateTime = timestamp.into();
+	pub const fn timestamp(self) -> UnixTimestamp {
+		const UNIX_EPOCH_DAYS: i64 = Date::UNIX_EPOCH.days_after_common_era();
+		// TODO don't require the .date()
+		let days = (self.date.days_after_common_era() - UNIX_EPOCH_DAYS) as i64;
+		let seconds = days * 86_400 + self.time().seconds_from_midnight() as i64;
+		let nanoseconds = self.nanosecond();
+
+		UnixTimestamp::new(seconds, nanoseconds)
+	}
+
+	pub const fn add_years_overflowing(
+		self,
+		years: i16,
+	) -> Result<(Self, bool), LeapDayNotInLeapYearError> {
+		let (date, overflow) = match self.date.add_years_overflowing(years) {
+			Ok(v) => v,
+			Err(e) => return Err(e),
+		};
+
+		Ok((
+			Self {
+				date,
+				time: self.time,
+			},
+			overflow,
+		))
+	}
+
+	pub const fn add_months_overflowing(
+		self,
+		months: i8,
+	) -> Result<(Self, bool), DayGreaterThanMaximumForMonthError> {
+		let (date, overflow) = match self.date.add_months_overflowing(months) {
+			Ok(v) => v,
+			Err(e) => return Err(e),
+		};
+
+		Ok((
+			Self {
+				date,
+				time: self.time,
+			},
+			overflow,
+		))
+	}
+
+	#[must_use]
+	pub const fn add_days_overflowing(self, days: i64) -> (Self, bool) {
+		let (date, overflow) = self.date.add_days_overflowing(days);
+
+		(
+			Self {
+				date,
+				time: self.time,
+			},
+			overflow,
+		)
+	}
+
+	#[must_use]
+	pub const fn add_hours_overflowing(self, hours: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.timestamp();
+		let (timestamp, overflow) = timestamp.add_hours_overflowing(hours);
+		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
 		(datetime, overflow)
 	}
 
 	#[must_use]
-	pub fn add_nanoseconds_overflowing(self, nanoseconds: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.into();
+	pub const fn add_minutes_overflowing(self, minutes: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.timestamp();
+		let (timestamp, overflow) = timestamp.add_minutes_overflowing(minutes);
+		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
+
+		(datetime, overflow)
+	}
+
+	#[must_use]
+	pub const fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.timestamp();
+		let (timestamp, overflow) = timestamp.add_seconds_overflowing(seconds);
+		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
+
+		(datetime, overflow)
+	}
+
+	#[must_use]
+	pub const fn add_nanoseconds_overflowing(self, nanoseconds: i64) -> (Self, bool) {
+		let timestamp: UnixTimestamp = self.timestamp();
 		let (timestamp, overflow) = timestamp.add_nanoseconds_overflowing(nanoseconds);
-		let datetime: NaiveDateTime = timestamp.into();
+		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
 		(datetime, overflow)
 	}
@@ -191,6 +286,7 @@ impl<Tz: TimeZone> Display for DateTime<Tz> {
 	}
 }
 
+// TODO there's a lossy cast somewhere here or in the into(). Where is it?
 impl From<UnixTimestamp> for NaiveDateTime {
 	fn from(timestamp: UnixTimestamp) -> Self {
 		const UNIX_EPOCH_DAYS_AFTER_CE: i64 = Date::UNIX_EPOCH.days_after_common_era();

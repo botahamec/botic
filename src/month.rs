@@ -399,11 +399,14 @@ impl Month {
 		}
 	}
 
-	pub const fn add_overflowing(self, months: u8) -> (Self, u8) {
+	pub const fn add_overflowing(self, months: i8) -> (Self, u8) {
 		let zero_indexed_num = ((self as u16) - 1) + months as u16;
 		let wraps = (zero_indexed_num as u8) / 12;
 		let zero_indexed_month = zero_indexed_num % 12;
-		let month = Self::from_u8((zero_indexed_month as u8) + 1).unwrap();
+		let month = match Self::from_u8((zero_indexed_month as u8) + 1) {
+			Some(month) => month,
+			None => unsafe { std::hint::unreachable_unchecked() },
+		};
 
 		(month, wraps)
 	}

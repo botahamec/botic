@@ -86,25 +86,32 @@ impl Date {
 		self.year.is_leap_year()
 	}
 
-	// TODO overflow handling
-	pub const fn add_years(self, years: i16) -> Result<Self, LeapDayNotInLeapYearError> {
-		let year = self.year + years;
+	pub const fn add_years_overflowing(
+		self,
+		years: i16,
+	) -> Result<(Self, bool), LeapDayNotInLeapYearError> {
+		let (year, overflow) = self.year.overflowing_add(years);
 
-		if self.day == 29 && self.month == Month::February && !year.is_leap_year() {
+		if self.day == 29 && (self.month as u8) == (Month::February as u8) && !year.is_leap_year() {
 			Err(LeapDayNotInLeapYearError(self.year))
 		} else {
-			Ok(Self {
-				year,
-				month: self.month,
-				day: self.day,
-			})
+			Ok((
+				Self {
+					year,
+					month: self.month,
+					day: self.day,
+				},
+				overflow,
+			))
 		}
 	}
 
-	// TODO overflow handling
-	pub const fn add_months(self, months: i8) -> Result<Self, DayGreaterThanMaximumForMonthError> {
+	pub const fn add_months_overflowing(
+		self,
+		months: i8,
+	) -> Result<(Self, bool), DayGreaterThanMaximumForMonthError> {
 		let (month, years_to_add) = self.month.add_overflowing(months);
-		let year = self.year + years_to_add;
+		let (year, overflow) = self.year.overflowing_add(years_to_add as i16);
 		let max_days_for_month = month.days(year.is_leap_year());
 
 		if self.day > max_days_for_month {
@@ -114,11 +121,14 @@ impl Date {
 				month_max_day: max_days_for_month,
 			})
 		} else {
-			Ok(Self {
-				year,
-				month,
-				day: self.day,
-			})
+			Ok((
+				Self {
+					year,
+					month,
+					day: self.day,
+				},
+				overflow,
+			))
 		}
 	}
 
@@ -151,9 +161,12 @@ impl Date {
 	}
 
 	#[must_use]
-	pub const fn add_days(self, days: i64) -> Self {
-		let total_days_since_ce = self.days_after_common_era() + days;
-		Self::from_days_after_common_era(total_days_since_ce)
+	pub const fn add_days_overflowing(self, days: i64) -> (Self, bool) {
+		let (total_days_since_ce, overflow) = self.days_after_common_era().overflowing_add(days);
+		(
+			Self::from_days_after_common_era(total_days_since_ce),
+			overflow,
+		)
 	}
 }
 

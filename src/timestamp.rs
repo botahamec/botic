@@ -26,6 +26,30 @@ impl UnixTimestamp {
 	}
 
 	#[must_use]
+	pub const fn add_days_overflowing(self, days: i64) -> (Self, bool) {
+		let (seconds, overflowing) = self.seconds.overflowing_add(days as i64 * 3600 * 24);
+
+		let timestamp = Self::new(seconds, self.nanoseconds);
+		(timestamp, overflowing)
+	}
+
+	#[must_use]
+	pub const fn add_hours_overflowing(self, hours: i64) -> (Self, bool) {
+		let (seconds, overflowing) = self.seconds.overflowing_add(hours as i64 * 3600);
+
+		let timestamp = Self::new(seconds, self.nanoseconds);
+		(timestamp, overflowing)
+	}
+
+	#[must_use]
+	pub const fn add_minutes_overflowing(self, minutes: i64) -> (Self, bool) {
+		let (seconds, overflowing) = self.seconds.overflowing_add(minutes as i64 * 60);
+
+		let timestamp = Self::new(seconds, self.nanoseconds);
+		(timestamp, overflowing)
+	}
+
+	#[must_use]
 	pub const fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
 		// TODO overflowing goes first
 		let (seconds, overflowing) = self.seconds.overflowing_add(seconds as i64);
