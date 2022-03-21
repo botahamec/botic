@@ -1,5 +1,6 @@
 use crate::{
 	date::{DayGreaterThanMaximumForMonthError, LeapDayNotInLeapYearError},
+	tai::Tai,
 	timezone::{Utc, UtcOffset},
 	Date, Month, Time, TimeZone, UnixTimestamp, Year,
 };
@@ -30,7 +31,7 @@ impl<Tz: TimeZone> DateTime<Tz> {
 	}
 
 	pub fn offset(&self) -> UtcOffset {
-		let utc = DateTime::<Utc>::from_utc(self.utc_datetime, Utc);
+		let utc = self.as_utc();
 		self.timezone.utc_offset(utc)
 	}
 
@@ -40,6 +41,29 @@ impl<Tz: TimeZone> DateTime<Tz> {
 
 	pub fn naive_utc(&self) -> NaiveDateTime {
 		self.utc_datetime
+	}
+
+	pub fn to_naive_overflowing(&self) -> (NaiveDateTime, bool) {
+		self.utc_datetime
+			.add_seconds_overflowing(self.offset().seconds_ahead().into())
+	}
+
+	pub fn as_utc(&self) -> DateTime<Utc> {
+		DateTime::<Utc>::from_utc(self.utc_datetime, Utc)
+	}
+
+	pub fn as_tai(&self) -> DateTime<Tai> {
+		DateTime::<Tai>::from_utc(self.utc_datetime, Tai)
+	}
+
+	pub fn unix_timestamp(&self) -> UnixTimestamp {
+		self.utc_datetime.timestamp()
+	}
+
+	// TODO rethink the name of UnixTimestamp
+	// TODO should this overflow?
+	pub fn tai_timestamp(&self) -> UnixTimestamp {
+		self.as_tai().to_naive_overflowing().0.timestamp()
 	}
 }
 

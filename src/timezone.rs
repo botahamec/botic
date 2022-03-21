@@ -52,8 +52,8 @@ impl UtcOffset {
 	pub const UTC: Self = Self { offset_seconds: 0 };
 
 	/// Makes a new `UtcOffset` timezone with the given timezone difference.
-	/// A positive number is the Eastern hemisphere. A negative number is the
-	/// Western hemisphere.
+	/// A positive number is the Eastern hemisphere. A negative number behind
+	/// UTC, such as UTC-5.
 	#[must_use]
 	pub const fn from_seconds(seconds: i32) -> Self {
 		Self {
@@ -62,22 +62,22 @@ impl UtcOffset {
 	}
 
 	/// Makes a new `UtcOffset` timezone with the given timezone difference.
-	/// A positive number is the Eastern hemisphere. A negative number is the
-	/// Western hemisphere.
+	/// A positive number is the Eastern hemisphere. A negative number is
+	/// behind UTC, such as UTC-5.
 	#[must_use]
 	pub const fn from_hours(hours: i32) -> Self {
 		Self::from_seconds(hours * 3600)
 	}
 
 	/// The number of hours this timezone is ahead of UTC. This number is
-	/// negative if the timezone is in the Western hemisphere
+	/// negative if the timezone is behind UTC, such as UTC-5.
 	#[must_use]
 	pub fn hours_ahead(self) -> f32 {
 		self.offset_seconds as f32 / 3600.0
 	}
 
 	/// The number of seconds this timezone is ahead of UTC. This number is
-	/// negative if the timezone is in the Western hemisphere
+	/// negative if the timezone is behind UTC, such as UTC-5.
 	#[must_use]
 	pub const fn seconds_ahead(self) -> i32 {
 		self.offset_seconds
