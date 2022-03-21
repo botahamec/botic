@@ -48,12 +48,16 @@ impl<Tz: TimeZone> DateTime<Tz> {
 			.add_seconds_overflowing(self.offset().seconds_ahead().into())
 	}
 
+	pub fn into_timezone<NewZone: TimeZone>(&self, timezone: NewZone) -> DateTime<NewZone> {
+		DateTime::<NewZone>::from_utc(self.utc_datetime, timezone)
+	}
+
 	pub fn as_utc(&self) -> DateTime<Utc> {
-		DateTime::<Utc>::from_utc(self.utc_datetime, Utc)
+		self.into_timezone(Utc)
 	}
 
 	pub fn as_tai(&self) -> DateTime<Tai> {
-		DateTime::<Tai>::from_utc(self.utc_datetime, Tai)
+		self.into_timezone(Tai)
 	}
 
 	pub fn unix_timestamp(&self) -> UnixTimestamp {
