@@ -83,7 +83,7 @@ impl TimeZone for Tai {
 	}
 
 	// TODO optimize
-	fn offset_from_local_time(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
+	fn offset_from_local_naive(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
 		// TAI times cannot have leap seconds
 		if date_time.second() == 60 {
 			return Err(UnexpectedLeapSecond {
@@ -120,7 +120,7 @@ mod tests {
 	#[test]
 	fn test_conversion_no_leap_seconds() {
 		let offset = unsafe {
-			Tai.offset_from_local_time(NaiveDateTime::new(
+			Tai.offset_from_local_naive(NaiveDateTime::new(
 				Date::from_ymd_unchecked(2000.into(), Month::January, 1),
 				Time::from_hms_unchecked(0, 0, 0),
 			))
@@ -134,7 +134,7 @@ mod tests {
 	fn test_conversion_one_leap_second() {
 		add_leap_second(unsafe { Date::from_ymd_unchecked(2000.into(), Month::January, 1) });
 		let offset = unsafe {
-			Tai.offset_from_local_time(NaiveDateTime::new(
+			Tai.offset_from_local_naive(NaiveDateTime::new(
 				Date::from_ymd_unchecked(2000.into(), Month::January, 2),
 				Time::from_hms_unchecked(0, 0, 0),
 			))

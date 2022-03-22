@@ -405,7 +405,7 @@ impl Month {
 		let zero_indexed_month = zero_indexed_num % 12;
 		let month = match Self::from_u8((zero_indexed_month as u8) + 1) {
 			Some(month) => month,
-			None => unsafe { std::hint::unreachable_unchecked() },
+			None => unsafe { core::hint::unreachable_unchecked() },
 		};
 
 		(month, wraps)

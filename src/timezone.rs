@@ -5,7 +5,7 @@ use core::fmt::Display;
 /// A type that can be used to represent a `TimeZone`
 pub trait TimeZone: Sized + Eq + Display {
 	/// The error to return in case of a failure to convert the local time to UTC
-	type Err;
+	type Err: core::fmt::Debug;
 
 	/// Given the time in the UTC timezone, determine the `UtcOffset`
 	fn utc_offset(&self, date_time: DateTime<Utc>) -> UtcOffset;
@@ -16,7 +16,7 @@ pub trait TimeZone: Sized + Eq + Display {
 	///
 	/// This returns an Err if the given `NaiveDateTime` cannot exist in this timezone.
 	/// For example, the time may have been skipped because of daylight savings time.
-	fn offset_from_local_time(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err>;
+	fn offset_from_local_naive(&self, date_time: NaiveDateTime) -> Result<UtcOffset, Self::Err>;
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -30,7 +30,7 @@ impl TimeZone for Utc {
 		UtcOffset::UTC
 	}
 
-	fn offset_from_local_time(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
+	fn offset_from_local_naive(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
 		Ok(UtcOffset::UTC)
 	}
 }
@@ -121,7 +121,7 @@ impl TimeZone for UtcOffset {
 		*self
 	}
 
-	fn offset_from_local_time(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
+	fn offset_from_local_naive(&self, _: NaiveDateTime) -> Result<UtcOffset, Self::Err> {
 		Ok(*self)
 	}
 }

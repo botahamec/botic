@@ -30,6 +30,16 @@ impl<Tz: TimeZone> DateTime<Tz> {
 		}
 	}
 
+	pub fn from_local(local_datetime: NaiveDateTime, timezone: Tz) -> Result<Self, Tz::Err> {
+		let offset = timezone.offset_from_local_naive(local_datetime)?;
+		// TODO overflow
+		let utc_datetime = local_datetime
+			.add_seconds_overflowing(-offset.seconds_ahead() as i64)
+			.0;
+
+		Ok(Self::from_utc(utc_datetime, timezone))
+	}
+
 	pub fn offset(&self) -> UtcOffset {
 		let utc = self.as_utc();
 		self.timezone.utc_offset(utc)
@@ -68,6 +78,26 @@ impl<Tz: TimeZone> DateTime<Tz> {
 	// TODO should this overflow?
 	pub fn tai_timestamp(&self) -> UnixTimestamp {
 		self.as_tai().to_naive_overflowing().0.timestamp()
+	}
+
+	#[must_use]
+	pub fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
+		let (tai_timestamp, overflow) = self.tai_timestamp().add_seconds_overflowing(seconds);
+		let tai_naive_dt = NaiveDateTime::from_timestamp(tai_timestamp);
+		let tai_dt = DateTime::from_local(tai_naive_dt, Tai).unwrap();
+
+		(tai_dt.into_timezone(self.timezone), overflow)
+	}
+
+	#[must_use]
+	pub fn add_nanoseconds_overflowing(self, nanoseconds: i64) -> (Self, bool) {
+		let (tai_timestamp, overflow) = self
+			.tai_timestamp()
+			.add_nanoseconds_overflowing(nanoseconds);
+		let tai_naive_dt = NaiveDateTime::from_timestamp(tai_timestamp);
+		let tai_dt = DateTime::from_local(tai_naive_dt, Tai).unwrap();
+
+		(tai_dt.into_timezone(self.timezone), overflow)
 	}
 }
 
@@ -285,7 +315,7 @@ impl<Tz: TimeZone, Other: TimeZone> PartialEq<DateTime<Other>> for DateTime<Tz> 
 }
 
 impl<Tz: TimeZone> Hash for DateTime<Tz> {
-	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+	fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
 		self.utc_datetime.hash(state);
 	}
 }
