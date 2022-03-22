@@ -2,7 +2,7 @@ use crate::{
 	date::{DayGreaterThanMaximumForMonthError, LeapDayNotInLeapYearError},
 	tai::Tai,
 	timezone::{Utc, UtcOffset},
-	Date, Month, Time, TimeZone, UnixTimestamp, Year,
+	Date, Month, Time, TimeZone, Timestamp, Year,
 };
 
 use core::{cmp::Ordering, fmt::Display, hash::Hash};
@@ -70,13 +70,12 @@ impl<Tz: TimeZone> DateTime<Tz> {
 		self.into_timezone(Tai)
 	}
 
-	pub fn unix_timestamp(&self) -> UnixTimestamp {
+	pub fn unix_timestamp(&self) -> Timestamp {
 		self.utc_datetime.timestamp()
 	}
 
-	// TODO rethink the name of UnixTimestamp
 	// TODO should this overflow?
-	pub fn tai_timestamp(&self) -> UnixTimestamp {
+	pub fn tai_timestamp(&self) -> Timestamp {
 		self.as_tai().to_naive_overflowing().0.timestamp()
 	}
 
@@ -109,12 +108,12 @@ impl NaiveDateTime {
 		Self { date, time }
 	}
 
-	pub const fn from_timestamp(timestamp: UnixTimestamp) -> Self {
+	pub const fn from_timestamp(timestamp: Timestamp) -> Self {
 		const UNIX_EPOCH_DAYS_AFTER_CE: i64 = Date::UNIX_EPOCH.days_after_common_era();
-		let days_after_unix_epoch = timestamp.seconds_since_unix_epoch() / 86_400;
+		let days_after_unix_epoch = timestamp.total_seconds() / 86_400;
 		let days_after_ce = days_after_unix_epoch + UNIX_EPOCH_DAYS_AFTER_CE as i64;
 		let date = Date::from_days_after_common_era(days_after_ce);
-		let seconds_after_midnight = timestamp.seconds_since_unix_epoch() % 86_400;
+		let seconds_after_midnight = timestamp.total_seconds() % 86_400;
 		let nanoseconds = timestamp.nanosecond();
 		let time = Time::MIDNIGHT
 			.add_seconds_overflowing(seconds_after_midnight as isize)
@@ -181,14 +180,14 @@ impl NaiveDateTime {
 	}
 
 	#[must_use]
-	pub const fn timestamp(self) -> UnixTimestamp {
+	pub const fn timestamp(self) -> Timestamp {
 		const UNIX_EPOCH_DAYS: i64 = Date::UNIX_EPOCH.days_after_common_era();
 		// TODO don't require the .date()
 		let days = (self.date.days_after_common_era() - UNIX_EPOCH_DAYS) as i64;
 		let seconds = days * 86_400 + self.time().seconds_from_midnight() as i64;
 		let nanoseconds = self.nanosecond();
 
-		UnixTimestamp::new(seconds, nanoseconds)
+		Timestamp::new(seconds, nanoseconds)
 	}
 
 	pub const fn add_years_overflowing(
@@ -242,7 +241,7 @@ impl NaiveDateTime {
 
 	#[must_use]
 	pub const fn add_hours_overflowing(self, hours: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.timestamp();
+		let timestamp: Timestamp = self.timestamp();
 		let (timestamp, overflow) = timestamp.add_hours_overflowing(hours);
 		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
@@ -251,7 +250,7 @@ impl NaiveDateTime {
 
 	#[must_use]
 	pub const fn add_minutes_overflowing(self, minutes: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.timestamp();
+		let timestamp: Timestamp = self.timestamp();
 		let (timestamp, overflow) = timestamp.add_minutes_overflowing(minutes);
 		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
@@ -260,7 +259,7 @@ impl NaiveDateTime {
 
 	#[must_use]
 	pub const fn add_seconds_overflowing(self, seconds: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.timestamp();
+		let timestamp: Timestamp = self.timestamp();
 		let (timestamp, overflow) = timestamp.add_seconds_overflowing(seconds);
 		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
@@ -269,7 +268,7 @@ impl NaiveDateTime {
 
 	#[must_use]
 	pub const fn add_nanoseconds_overflowing(self, nanoseconds: i64) -> (Self, bool) {
-		let timestamp: UnixTimestamp = self.timestamp();
+		let timestamp: Timestamp = self.timestamp();
 		let (timestamp, overflow) = timestamp.add_nanoseconds_overflowing(nanoseconds);
 		let datetime: NaiveDateTime = Self::from_timestamp(timestamp);
 
@@ -345,13 +344,13 @@ impl<Tz: TimeZone> Display for DateTime<Tz> {
 }
 
 // TODO there's a lossy cast somewhere here or in the into(). Where is it?
-impl From<UnixTimestamp> for NaiveDateTime {
-	fn from(timestamp: UnixTimestamp) -> Self {
+impl From<Timestamp> for NaiveDateTime {
+	fn from(timestamp: Timestamp) -> Self {
 		const UNIX_EPOCH_DAYS_AFTER_CE: i64 = Date::UNIX_EPOCH.days_after_common_era();
-		let days_after_unix_epoch = timestamp.seconds_since_unix_epoch() / 86_400;
+		let days_after_unix_epoch = timestamp.total_seconds() / 86_400;
 		let days_after_ce = days_after_unix_epoch + UNIX_EPOCH_DAYS_AFTER_CE as i64;
 		let date = Date::from_days_after_common_era(days_after_ce);
-		let seconds_after_midnight = timestamp.seconds_since_unix_epoch() % 86_400;
+		let seconds_after_midnight = timestamp.total_seconds() % 86_400;
 		let nanoseconds = timestamp.nanosecond();
 		let time = Time::MIDNIGHT
 			.add_seconds(seconds_after_midnight as isize)

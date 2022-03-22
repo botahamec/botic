@@ -1,12 +1,12 @@
 use crate::{Date, NaiveDateTime};
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug)]
-pub struct UnixTimestamp {
+pub struct Timestamp {
 	seconds: i64,
 	nanoseconds: u32,
 }
 
-impl UnixTimestamp {
+impl Timestamp {
 	#[must_use]
 	pub const fn new(seconds: i64, nanoseconds: u32) -> Self {
 		Self {
@@ -16,7 +16,7 @@ impl UnixTimestamp {
 	}
 
 	#[must_use]
-	pub const fn seconds_since_unix_epoch(self) -> i64 {
+	pub const fn total_seconds(self) -> i64 {
 		self.seconds
 	}
 
@@ -72,7 +72,7 @@ impl UnixTimestamp {
 	}
 }
 
-impl From<NaiveDateTime> for UnixTimestamp {
+impl From<NaiveDateTime> for Timestamp {
 	fn from(ndt: NaiveDateTime) -> Self {
 		const UNIX_EPOCH_DAYS: i64 = Date::UNIX_EPOCH.days_after_common_era();
 		// TODO don't require the .date()
@@ -84,7 +84,7 @@ impl From<NaiveDateTime> for UnixTimestamp {
 	}
 }
 
-impl PartialOrd for UnixTimestamp {
+impl PartialOrd for Timestamp {
 	fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
 		match self.seconds.partial_cmp(&other.seconds) {
 			Some(core::cmp::Ordering::Equal) => self.nanoseconds.partial_cmp(&other.nanoseconds),
@@ -93,7 +93,7 @@ impl PartialOrd for UnixTimestamp {
 	}
 }
 
-impl Ord for UnixTimestamp {
+impl Ord for Timestamp {
 	fn cmp(&self, other: &Self) -> core::cmp::Ordering {
 		match self.seconds.cmp(&other.seconds) {
 			core::cmp::Ordering::Equal => self.nanoseconds.cmp(&other.nanoseconds),

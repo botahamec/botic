@@ -17,7 +17,7 @@ pub use datetime::DateTime;
 pub use datetime::NaiveDateTime;
 pub use month::Month;
 pub use time::Time;
-pub use timestamp::UnixTimestamp;
+pub use timestamp::Timestamp;
 pub use timezone::TimeZone;
 pub use weekday::Weekday;
 pub use year::Year;
