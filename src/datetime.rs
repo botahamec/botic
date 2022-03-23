@@ -6,6 +6,7 @@ use crate::{
 };
 
 use core::{cmp::Ordering, fmt::Display, hash::Hash};
+use std::time::SystemTime;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NaiveDateTime {
@@ -38,6 +39,16 @@ impl<Tz: TimeZone> DateTime<Tz> {
 			.0;
 
 		Ok(Self::from_utc(utc_datetime, timezone))
+	}
+
+	pub fn system_time(timezone: Tz) -> Self {
+		let system_time = SystemTime::now();
+		// TODO this panics if the SystemTime is earlier than the unix epoch
+		let unix_time = system_time.duration_since(SystemTime::UNIX_EPOCH).unwrap();
+		let timestamp = Timestamp::new(unix_time.as_secs() as i64, unix_time.subsec_nanos());
+		let naive_dt = NaiveDateTime::from_timestamp(timestamp);
+
+		Self::from_utc(naive_dt, timezone)
 	}
 
 	pub fn offset(&self) -> UtcOffset {
