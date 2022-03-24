@@ -43,9 +43,14 @@ impl<Tz: TimeZone> DateTime<Tz> {
 
 	pub fn system_time(timezone: Tz) -> Self {
 		let system_time = SystemTime::now();
-		// TODO this panics if the SystemTime is earlier than the unix epoch
-		let unix_time = system_time.duration_since(SystemTime::UNIX_EPOCH).unwrap();
-		let timestamp = Timestamp::new(unix_time.as_secs() as i64, unix_time.subsec_nanos());
+		let (seconds, nanoseconds) = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
+			Ok(duration) => (duration.as_secs() as i64, duration.subsec_nanos()),
+			Err(ste) => (
+				-(ste.duration().as_secs() as i64),
+				ste.duration().subsec_nanos(),
+			),
+		};
+		let timestamp = Timestamp::new(seconds, nanoseconds);
 		let naive_dt = NaiveDateTime::from_timestamp(timestamp);
 
 		Self::from_utc(naive_dt, timezone)
