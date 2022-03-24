@@ -2,12 +2,43 @@ use core::cmp::Ordering;
 use core::fmt::Display;
 use core::panic;
 
+use thiserror::Error;
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Time {
 	hour: u8,
 	minute: u8,
 	second: u8,
 	nanosecond: u32,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Error)]
+pub struct InvalidTimeError {
+	hour: u8,
+	minute: u8,
+	second: u8,
+	nanosecond: u32,
+}
+
+impl Display for InvalidTimeError {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(
+			f,
+			"Tried to construct invalid time {}:{}:{}.{}",
+			self.hour, self.minute, self.second, self.nanosecond
+		)
+	}
+}
+
+impl InvalidTimeError {
+	const unsafe fn new_unchecked(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Self {
+		Self {
+			hour,
+			minute,
+			second,
+			nanosecond,
+		}
+	}
 }
 
 impl Time {
@@ -33,6 +64,10 @@ impl Time {
 		}
 	}
 
+	pub const fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, InvalidTimeError> {
+		Self::from_hms_nano(hour, minute, second, 0)
+	}
+
 	/// Create a `Time` from an hour, minute, second, and millisecond
 	///
 	/// # Safety
@@ -52,6 +87,15 @@ impl Time {
 			second,
 			nanosecond: millisecond as u32 * 1_000_000,
 		}
+	}
+
+	pub const fn from_hms_milli(
+		hour: u8,
+		minute: u8,
+		second: u8,
+		millisecond: u16,
+	) -> Result<Self, InvalidTimeError> {
+		Self::from_hms_nano(hour, minute, second, millisecond as u32 * 1000)
 	}
 
 	/// Create a `Time` from an hour, minute, second, and microsecond
@@ -75,6 +119,15 @@ impl Time {
 		}
 	}
 
+	pub const fn from_hms_micro(
+		hour: u8,
+		minute: u8,
+		second: u8,
+		microsecond: u32,
+	) -> Result<Self, InvalidTimeError> {
+		Self::from_hms_nano(hour, minute, second, microsecond * 1_000_000)
+	}
+
 	/// Create a `Time` from an hour, minute, second, and nanosecond
 	///
 	/// # Safety
@@ -94,6 +147,55 @@ impl Time {
 			second,
 			nanosecond,
 		}
+	}
+
+	pub const fn from_hms_nano(
+		hour: u8,
+		minute: u8,
+		second: u8,
+		nanosecond: u32,
+	) -> Result<Self, InvalidTimeError> {
+		if hour >= 24 {
+			return unsafe {
+				Err(InvalidTimeError::new_unchecked(
+					hour, minute, second, nanosecond,
+				))
+			};
+		}
+
+		if minute >= 60 {
+			return unsafe {
+				Err(InvalidTimeError::new_unchecked(
+					hour, minute, second, nanosecond,
+				))
+			};
+		}
+
+		if second > 60 {
+			return unsafe {
+				Err(InvalidTimeError::new_unchecked(
+					hour, minute, second, nanosecond,
+				))
+			};
+		}
+
+		if nanosecond >= 1_000_000_000 {
+			return unsafe {
+				Err(InvalidTimeError::new_unchecked(
+					hour, minute, second, nanosecond,
+				))
+			};
+		}
+
+		if second == 60 && (minute != 59 || hour != 23) {
+			return unsafe {
+				Err(InvalidTimeError::new_unchecked(
+					hour, minute, second, nanosecond,
+				))
+			};
+		}
+
+		unsafe { Ok(Self::from_hms_unchecked(hour, minute, second)) }
 	}
 
 	/// Get the clock hour. The returned value will always be in the range `0..24`

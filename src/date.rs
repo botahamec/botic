@@ -64,6 +64,27 @@ impl Date {
 		Self { year, month, day }
 	}
 
+	pub const fn from_ymd(year: Year, month: Month, day: u8) -> Result<Self, InvalidDateError> {
+		if day == 29 && (month as u8) == (Month::February as u8) && !year.is_leap_year() {
+			return Err(InvalidDateError::NonLeapYear(LeapDayNotInLeapYearError(
+				year,
+			)));
+		}
+
+		let max_days_for_month = month.days(year.is_leap_year());
+		if day > max_days_for_month {
+			return Err(InvalidDateError::DayTooBig(
+				DayGreaterThanMaximumForMonthError {
+					month,
+					given_day: day,
+					month_max_day: max_days_for_month,
+				},
+			));
+		}
+
+		unsafe { Ok(Self::from_ymd_unchecked(year, month, day)) }
+	}
+
 	// TODO docs
 
 	#[must_use]
